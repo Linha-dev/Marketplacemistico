@@ -15,7 +15,7 @@ async function handler(req, res) {
     console.error('Health check DB error:', err);
   }
 
-  const { version } = await import('../package.json', { with: { type: 'json' } }).catch(() => ({ version: '1.0.0' }));
+  const version = '1.0.0';
 
   return sendSuccess(res, {
     status: 'ok',
