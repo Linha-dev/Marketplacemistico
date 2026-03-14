@@ -1,13 +1,13 @@
 import { jest } from '@jest/globals';
 
 // Use absolute path relative to the test file if possible, or correct relative path
-jest.unstable_mockModule('../../api/db.js', () => ({
+jest.unstable_mockModule('../../backend/db.js', () => ({
   query: jest.fn(),
   getDb: jest.fn()
 }));
 
-const { query } = await import('../../api/db.js');
-const { default: handler } = await import('../../api/auth/register.js');
+const { query } = await import('../../backend/db.js');
+const { default: handler } = await import('../../backend/auth/register.js');
 
 describe('Auth Register API', () => {
   let req, res;

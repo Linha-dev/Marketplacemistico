@@ -1,12 +1,12 @@
 import { jest } from '@jest/globals';
 
-jest.unstable_mockModule('../../api/db.js', () => ({
+jest.unstable_mockModule('../../backend/db.js', () => ({
   query: jest.fn(),
   getDb: jest.fn()
 }));
 
 // Mocking requireAuth to bypass JWT validation in integration tests
-jest.unstable_mockModule('../../api/auth-middleware.js', () => ({
+jest.unstable_mockModule('../../backend/auth-middleware.js', () => ({
   requireAuth: (handler) => async (req, res) => {
     // In tests, we manually set req.user
     if (!req.user) {
@@ -16,8 +16,8 @@ jest.unstable_mockModule('../../api/auth-middleware.js', () => ({
   }
 }));
 
-const { query } = await import('../../api/db.js');
-const { default: handler } = await import('../../api/orders/index.js');
+const { query } = await import('../../backend/db.js');
+const { default: handler } = await import('../../backend/orders/index.js');
 
 describe('Orders API', () => {
   let req, res;

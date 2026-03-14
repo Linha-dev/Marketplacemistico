@@ -4,7 +4,7 @@ import {
   validatePassword,
   validateEmail,
   sanitizeString
-} from '../../api/sanitize.js';
+} from '../../backend/sanitize.js';
 
 describe('Sanitization Utilities', () => {
 

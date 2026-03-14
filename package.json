@@ -2,7 +2,7 @@
   "name": "marketplace-mistico",
   "version": "1.0.0",
   "type": "module",
-  "main": "api/db.js",
+  "main": "backend/db.js",
   "scripts": {
     "dev": "vercel dev",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
