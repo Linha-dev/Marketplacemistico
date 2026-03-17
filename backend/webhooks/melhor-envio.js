@@ -3,6 +3,22 @@ import { sanitizeString, sanitizeInteger } from '../sanitize.js';
 import { sendSuccess, sendError } from '../response.js';
 import { withCors } from '../middleware.js';
 
+export function normalizeShippingStatus(rawStatus) {
+  const value = sanitizeString(rawStatus || '').toLowerCase();
+
+  if (!value) return 'pending';
+  if (['pending', 'label_generated', 'posted', 'in_transit', 'delivered', 'cancelled', 'returned'].includes(value)) {
+    return value;
+  }
+  if (value.includes('entreg') || value.includes('delivered')) return 'delivered';
+  if (value.includes('transit') || value.includes('transito')) return 'in_transit';
+  if (value.includes('post') || value.includes('ship') || value.includes('enviad')) return 'posted';
+  if (value.includes('label') || value.includes('etiqueta') || value.includes('ready')) return 'label_generated';
+  if (value.includes('cancel')) return 'cancelled';
+  if (value.includes('return') || value.includes('devol')) return 'returned';
+  return 'pending';
+}
+
 async function handler(req, res) {
   if (req.method !== 'POST') {
     return sendError(res, 'METHOD_NOT_ALLOWED', 'Metodo nao permitido', 405);
@@ -20,6 +36,7 @@ async function handler(req, res) {
     const payload = req.body || {};
     const shipmentExternalId = sanitizeString(payload.id || payload.shipment_id || payload.order_id);
     const eventType = sanitizeString(payload.event || payload.type || payload.status || 'tracking_update');
+    const normalizedStatus = normalizeShippingStatus(payload.status || payload.event || payload.type);
     const trackingCode = sanitizeString(payload.tracking || payload.tracking_code);
 
     if (!shipmentExternalId) {
@@ -49,14 +66,14 @@ async function handler(req, res) {
            status = COALESCE($2, status),
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $3`,
-      [trackingCode || null, eventType || null, sanitizeInteger(shipment.id)]
+      [trackingCode || null, normalizedStatus, sanitizeInteger(shipment.id)]
     );
 
     await query(
       `UPDATE orders
        SET shipping_status = COALESCE($1, shipping_status)
        WHERE id = $2`,
-      [eventType || null, shipment.order_id]
+      [normalizedStatus, shipment.order_id]
     );
 
     return sendSuccess(res, { processed: true, shipmentId: shipment.id });
