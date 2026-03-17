@@ -17,6 +17,14 @@ const baseBody = {
   cpf_cnpj: '529.982.247-25'
 };
 
+function buildPostRequest(body) {
+  return {
+    method: 'POST',
+    headers: {},
+    body
+  };
+}
+
 describe('Auth Register API', () => {
   let req;
   let res;
@@ -39,7 +47,7 @@ describe('Auth Register API', () => {
   });
 
   test('should register a client successfully', async () => {
-    req = { method: 'POST', body: { ...baseBody } };
+    req = buildPostRequest({ ...baseBody });
 
     query.mockResolvedValueOnce([]); // email
     query.mockResolvedValueOnce([]); // phone
@@ -68,7 +76,7 @@ describe('Auth Register API', () => {
   });
 
   test('should return error if email already exists', async () => {
-    req = { method: 'POST', body: { ...baseBody } };
+    req = buildPostRequest({ ...baseBody });
 
     query.mockResolvedValueOnce([{ id: 1 }]);
 
@@ -82,7 +90,7 @@ describe('Auth Register API', () => {
   });
 
   test('should return error for invalid CPF', async () => {
-    req = { method: 'POST', body: { ...baseBody, cpf_cnpj: '111.111.111-11' } };
+    req = buildPostRequest({ ...baseBody, cpf_cnpj: '111.111.111-11' });
 
     await handler(req, res);
 
@@ -95,7 +103,7 @@ describe('Auth Register API', () => {
   });
 
   test('should return error if phone already exists', async () => {
-    req = { method: 'POST', body: { ...baseBody } };
+    req = buildPostRequest({ ...baseBody });
 
     query.mockResolvedValueOnce([]); // email
     query.mockResolvedValueOnce([{ id: 2 }]); // phone
@@ -110,7 +118,7 @@ describe('Auth Register API', () => {
   });
 
   test('should return error if CPF/CNPJ already exists', async () => {
-    req = { method: 'POST', body: { ...baseBody } };
+    req = buildPostRequest({ ...baseBody });
 
     query.mockResolvedValueOnce([]); // email
     query.mockResolvedValueOnce([]); // phone
@@ -126,7 +134,7 @@ describe('Auth Register API', () => {
   });
 
   test('should return standard password message for weak password', async () => {
-    req = { method: 'POST', body: { ...baseBody, senha: 'abc12345' } };
+    req = buildPostRequest({ ...baseBody, senha: 'abc12345' });
 
     await handler(req, res);
 
@@ -142,16 +150,13 @@ describe('Auth Register API', () => {
   });
 
   test('should validate duplicated store name for vendor', async () => {
-    req = {
-      method: 'POST',
-      body: {
-        ...baseBody,
-        tipo: 'vendedor',
-        nomeLoja: 'Loja Mistica',
-        categoria: 'Cristais',
-        descricaoLoja: 'Loja de teste'
-      }
-    };
+    req = buildPostRequest({
+      ...baseBody,
+      tipo: 'vendedor',
+      nomeLoja: 'Loja Mistica',
+      categoria: 'Cristais',
+      descricaoLoja: 'Loja de teste'
+    });
 
     query.mockResolvedValueOnce([]); // email
     query.mockResolvedValueOnce([]); // phone
