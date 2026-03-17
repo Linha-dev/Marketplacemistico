@@ -79,7 +79,53 @@ describe('Payments refund API', () => {
     expect(res.status).toHaveBeenCalledWith(201);
   });
 
-  test('blocks full refund when partial refund already exists', async () => {
+  test('creates partial refund when amount is lower than refundable balance', async () => {
+    req.body = { payment_id: 10, amount: 30 };
+
+    createEfiRefund.mockResolvedValue({
+      providerRefundId: 'rf_partial',
+      refundReference: 'refund_partial',
+      status: 'processed',
+      raw: { ok: true }
+    });
+
+    tx.query.mockResolvedValueOnce({
+      rows: [{
+        id: 10,
+        order_id: 99,
+        provider: 'efi',
+        provider_charge_id: 'ch_123',
+        amount: '100.00',
+        status: 'approved',
+        comprador_id: 22,
+        vendedor_id: 5
+      }]
+    });
+    tx.query.mockResolvedValueOnce({ rows: [{ refunded_total: '0.00' }] });
+    tx.query.mockResolvedValueOnce({ rows: [{ id: 2, amount: '30.00', status: 'processed' }] });
+    tx.query.mockResolvedValueOnce({ rows: [] });
+    tx.query.mockResolvedValueOnce({ rows: [] });
+
+    await handler(req, res);
+
+    expect(createEfiRefund).toHaveBeenCalledWith(expect.objectContaining({
+      providerChargeId: 'ch_123',
+      amount: 30
+    }));
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      success: true,
+      data: expect.objectContaining({
+        payment: expect.objectContaining({ status: 'partially_refunded' }),
+        refundable_before: 100,
+        refundable_after: 70
+      })
+    }));
+  });
+
+  test('blocks refund when amount exceeds refundable balance', async () => {
+    req.body = { payment_id: 10, amount: 90 };
+
     tx.query.mockResolvedValueOnce({
       rows: [{
         id: 10,
@@ -99,7 +145,47 @@ describe('Payments refund API', () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       success: false,
-      error: expect.objectContaining({ code: 'PARTIAL_REFUND_EXISTS' })
+      error: expect.objectContaining({ code: 'REFUND_AMOUNT_EXCEEDS_BALANCE' })
+    }));
+  });
+
+  test('marks payment as refunded when cumulative partial refunds reach total', async () => {
+    req.body = { payment_id: 10, amount: 30 };
+
+    createEfiRefund.mockResolvedValue({
+      providerRefundId: 'rf_last',
+      refundReference: 'refund_last',
+      status: 'processed',
+      raw: { ok: true }
+    });
+
+    tx.query.mockResolvedValueOnce({
+      rows: [{
+        id: 10,
+        order_id: 99,
+        provider: 'efi',
+        provider_charge_id: 'ch_123',
+        amount: '100.00',
+        status: 'partially_refunded',
+        comprador_id: 22,
+        vendedor_id: 5
+      }]
+    });
+    tx.query.mockResolvedValueOnce({ rows: [{ refunded_total: '70.00' }] });
+    tx.query.mockResolvedValueOnce({ rows: [{ id: 3, amount: '30.00', status: 'processed' }] });
+    tx.query.mockResolvedValueOnce({ rows: [] });
+    tx.query.mockResolvedValueOnce({ rows: [] });
+
+    await handler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      success: true,
+      data: expect.objectContaining({
+        payment: expect.objectContaining({ status: 'refunded' }),
+        refundable_before: 30,
+        refundable_after: 0
+      })
     }));
   });
 });

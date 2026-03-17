@@ -33,7 +33,8 @@
 
 - `POST /api/payments/refund`
   - body:
-  - `{ \"payment_id\": 10, \"reason\": \"cliente desistiu\" }`
+  - `{ \"payment_id\": 10, \"amount\": 30.50, \"reason\": \"cliente desistiu\" }`
+  - `amount` opcional: se omitido, faz refund total do saldo restante.
 
 - `POST /api/webhooks/efi`
   - header opcional: `x-webhook-secret`

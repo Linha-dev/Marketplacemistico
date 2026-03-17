@@ -1,5 +1,5 @@
 ﻿import { withTransaction } from '../db.js';
-import { sanitizeInteger, sanitizeString } from '../sanitize.js';
+import { sanitizeInteger, sanitizeNumber, sanitizeString } from '../sanitize.js';
 import { sendSuccess, sendError } from '../response.js';
 import { withCors } from '../middleware.js';
 import { requireAuth } from '../auth-middleware.js';
@@ -17,9 +17,17 @@ async function handler(req, res) {
   const paymentId = sanitizeInteger(req.body?.payment_id);
   const orderId = sanitizeInteger(req.body?.order_id);
   const reason = sanitizeString(req.body?.reason || 'refund_total');
+  const requestedAmountRaw = req.body?.amount;
+  const requestedAmount =
+    requestedAmountRaw === undefined || requestedAmountRaw === null
+      ? null
+      : sanitizeNumber(requestedAmountRaw);
 
   if (!paymentId && !orderId) {
     return sendError(res, 'VALIDATION_ERROR', 'payment_id ou order_id obrigatorio');
+  }
+  if (requestedAmount !== null && requestedAmount <= 0) {
+    return sendError(res, 'VALIDATION_ERROR', 'amount deve ser maior que zero');
   }
 
   try {
@@ -73,9 +81,16 @@ async function handler(req, res) {
         throw error;
       }
 
-      if (Math.abs(refundable - paymentAmount) > 0.009) {
-        const error = new Error('Pagamento ja possui refund parcial; use refund parcial para continuar');
-        error.code = 'PARTIAL_REFUND_EXISTS';
+      const amountToRefund = Number((requestedAmount ?? refundable).toFixed(2));
+      if (amountToRefund <= 0) {
+        const error = new Error('Valor de refund invalido');
+        error.code = 'INVALID_REFUND_AMOUNT';
+        throw error;
+      }
+
+      if (amountToRefund - refundable > 0.009) {
+        const error = new Error('Valor solicitado excede o saldo reembolsavel');
+        error.code = 'REFUND_AMOUNT_EXCEEDS_BALANCE';
         throw error;
       }
 
@@ -93,7 +108,7 @@ async function handler(req, res) {
 
       const providerRefund = await createEfiRefund({
         providerChargeId: payment.provider_charge_id,
-        amount: refundable,
+        amount: amountToRefund,
         reason
       });
 
@@ -117,7 +132,7 @@ async function handler(req, res) {
           payment.order_id,
           payment.provider,
           providerRefund.providerRefundId || providerRefund.refundReference,
-          refundable,
+          amountToRefund,
           reason,
           persistedStatus,
           JSON.stringify(providerRefund.raw || {}),
@@ -126,33 +141,46 @@ async function handler(req, res) {
       );
 
       if (persistedStatus === 'processed') {
-        assertPaymentStatusTransition(currentStatus, 'refunded');
+        const remainingAfter = Number((refundable - amountToRefund).toFixed(2));
+        const nextPaymentStatus = remainingAfter <= 0 ? 'refunded' : 'partially_refunded';
+
+        assertPaymentStatusTransition(currentStatus, nextPaymentStatus);
 
         await tx.query(
           `UPDATE payments
-           SET status = 'refunded',
+           SET status = $2,
                updated_at = CURRENT_TIMESTAMP
            WHERE id = $1`,
-          [payment.id]
+          [payment.id, nextPaymentStatus]
         );
 
         await tx.query(
           `UPDATE orders
-           SET payment_status = 'refunded',
-               status = CASE WHEN status <> 'entregue' THEN 'cancelado' ELSE status END
+           SET payment_status = $2,
+               status = CASE
+                 WHEN $2 = 'refunded' AND status <> 'entregue' THEN 'cancelado'
+                 ELSE status
+               END
            WHERE id = $1`,
-          [payment.order_id]
+          [payment.order_id, nextPaymentStatus]
         );
       }
+
+      const refundableAfter = Number((refundable - amountToRefund).toFixed(2));
+      const finalPaymentStatus =
+        persistedStatus === 'processed'
+          ? (refundableAfter <= 0 ? 'refunded' : 'partially_refunded')
+          : currentStatus;
 
       return {
         refund: refundInsert.rows[0],
         payment: {
           id: payment.id,
           order_id: payment.order_id,
-          status: persistedStatus === 'processed' ? 'refunded' : currentStatus
+          status: finalPaymentStatus
         },
         refundable_before: refundable,
+        refundable_after: refundableAfter,
         provider: providerRefund
       };
     });
@@ -167,7 +195,8 @@ async function handler(req, res) {
       [
         'INVALID_PAYMENT_STATUS',
         'NO_REFUNDABLE_BALANCE',
-        'PARTIAL_REFUND_EXISTS',
+        'INVALID_REFUND_AMOUNT',
+        'REFUND_AMOUNT_EXCEEDS_BALANCE',
         'VALIDATION_ERROR',
         'UNSUPPORTED_PROVIDER',
         'INVALID_PAYMENT_STATUS_TRANSITION'
@@ -176,8 +205,8 @@ async function handler(req, res) {
       return sendError(res, error.code, error.message, 400);
     }
 
-    console.error('Erro ao criar refund total:', error);
-    return sendError(res, 'INTERNAL_ERROR', 'Erro ao processar refund total', 500);
+    console.error('Erro ao criar refund:', error);
+    return sendError(res, 'INTERNAL_ERROR', 'Erro ao processar refund', 500);
   }
 }
 
