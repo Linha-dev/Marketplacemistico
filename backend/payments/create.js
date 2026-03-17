@@ -4,13 +4,7 @@ import { sendSuccess, sendError } from '../response.js';
 import { withCors } from '../middleware.js';
 import { requireAuth } from '../auth-middleware.js';
 import { createEfiCharge } from '../services/payments/efi-service.js';
-
-function normalizePaymentStatus(status) {
-  const value = sanitizeString(status || '').toLowerCase();
-  if (['approved', 'paid', 'concluida'].includes(value)) return 'approved';
-  if (['cancelled', 'canceled', 'rejected'].includes(value)) return 'failed';
-  return 'pending';
-}
+import { normalizePaymentStatus } from '../services/payments/payment-status-machine.js';
 
 async function handler(req, res) {
   if (req.method !== 'POST') {

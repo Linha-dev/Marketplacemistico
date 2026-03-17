@@ -2,13 +2,10 @@ import { query } from '../db.js';
 import { sanitizeString } from '../sanitize.js';
 import { sendSuccess, sendError } from '../response.js';
 import { withCors } from '../middleware.js';
-
-function normalizeStatus(providerStatus) {
-  const value = sanitizeString(providerStatus || '').toLowerCase();
-  if (['approved', 'paid', 'concluded'].includes(value)) return 'approved';
-  if (['cancelled', 'canceled', 'rejected'].includes(value)) return 'failed';
-  return 'pending';
-}
+import {
+  assertPaymentStatusTransition,
+  normalizePaymentStatus
+} from '../services/payments/payment-status-machine.js';
 
 async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -27,7 +24,7 @@ async function handler(req, res) {
     const payload = req.body || {};
     const providerChargeId = sanitizeString(payload.txid || payload.charge_id || payload.id);
     const eventType = sanitizeString(payload.event || payload.type || 'payment_status_changed');
-    const status = normalizeStatus(payload.status || payload.situacao);
+    const status = normalizePaymentStatus(payload.status || payload.situacao);
 
     if (!providerChargeId) {
       return sendError(res, 'VALIDATION_ERROR', 'provider_charge_id ausente');
@@ -51,12 +48,15 @@ async function handler(req, res) {
     );
 
     const payments = await query(
-      'SELECT id, order_id FROM payments WHERE provider = $1 AND provider_charge_id = $2 LIMIT 1',
+      'SELECT id, order_id, status FROM payments WHERE provider = $1 AND provider_charge_id = $2 LIMIT 1',
       ['efi', providerChargeId]
     );
 
     if (payments.length > 0) {
       const payment = payments[0];
+      const currentStatus = normalizePaymentStatus(payment.status);
+
+      assertPaymentStatusTransition(currentStatus, status);
 
       await query(
         `UPDATE payments
@@ -75,6 +75,17 @@ async function handler(req, res) {
            WHERE id = $1`,
           [payment.order_id]
         );
+      } else if (['failed', 'cancelled', 'refunded', 'partially_refunded'].includes(status)) {
+        await query(
+          `UPDATE orders
+           SET payment_status = $1,
+               status = CASE
+                 WHEN $1 IN ('failed', 'cancelled') AND status = 'pendente' THEN 'cancelado'
+                 ELSE status
+               END
+           WHERE id = $2`,
+          [status, payment.order_id]
+        );
       }
     }
 
@@ -87,6 +98,9 @@ async function handler(req, res) {
 
     return sendSuccess(res, { processed: true, providerChargeId, status });
   } catch (error) {
+    if (error.code === 'INVALID_PAYMENT_STATUS_TRANSITION') {
+      return sendError(res, error.code, error.message);
+    }
     console.error('Erro no webhook EFI:', error);
     return sendError(res, 'INTERNAL_ERROR', 'Erro ao processar webhook EFI', 500);
   }
