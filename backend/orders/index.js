@@ -64,70 +64,88 @@ async function handler(req, res) {
       if (productIds.length !== items.length) {
         return sendError(res, 'VALIDATION_ERROR', 'IDs de produtos invalidos');
       }
+      const uniqueProductIds = [...new Set(productIds)];
 
-      const productRows = await query(
-        `SELECT p.id, p.nome, p.preco, p.estoque, p.seller_id, p.publicado,
-                p.weight_kg, p.height_cm, p.width_cm, p.length_cm,
-                s.user_id as seller_user_id
-         FROM products p
-         JOIN sellers s ON p.seller_id = s.id
-         WHERE p.id = ANY($1::int[])`,
-        [productIds]
-      );
-
-      if (productRows.length !== productIds.length) {
-        return sendError(res, 'NOT_FOUND', 'Um ou mais produtos nao foram encontrados');
-      }
-
-      const sellerIds = new Set(productRows.map(p => p.seller_id));
-      if (sellerIds.size !== 1) {
-        return sendError(
-          res,
-          'MULTI_SELLER_NOT_ALLOWED',
-          'No MVP, o carrinho aceita produtos de apenas um vendedor por vez'
-        );
-      }
-
-      const sellerId = productRows[0].seller_id;
-      const sellerUserId = productRows[0].seller_user_id;
-      if (req.user.id === sellerUserId) {
-        return sendError(res, 'FORBIDDEN', 'Vendedor nao pode comprar seus proprios produtos', 403);
-      }
-
-      const orderItems = items.map(item => {
-        const product = productRows.find(p => p.id === sanitizeInteger(item.product_id));
-        const quantidade = Math.max(1, sanitizeInteger(item.quantidade) || 1);
-
-        if (!product.publicado) {
-          throw Object.assign(new Error(`Produto ${product.id} nao esta disponivel`), { code: 'PRODUCT_UNAVAILABLE' });
-        }
-        if (product.estoque < quantidade) {
-          throw Object.assign(new Error(`Estoque insuficiente para produto ${product.id}`), { code: 'INSUFFICIENT_STOCK' });
-        }
-
-        return {
-          product,
-          quantidade,
-          preco: parseFloat(product.preco),
-          nameSnapshot: product.nome,
-          weightSnapshot: product.weight_kg,
-          dimensionSnapshot: {
-            height_cm: product.height_cm,
-            width_cm: product.width_cm,
-            length_cm: product.length_cm
-          }
-        };
-      });
-
-      const itemsSubtotal = orderItems.reduce((sum, item) => sum + item.preco * item.quantidade, 0);
       const shippingTotal = sanitizeNumber(rawShippingTotal);
       const discountTotal = sanitizeNumber(rawDiscountTotal);
       const safeShippingTotal = shippingTotal !== null && shippingTotal >= 0 ? shippingTotal : 0;
       const safeDiscountTotal = discountTotal !== null && discountTotal >= 0 ? discountTotal : 0;
-      const grandTotal = Math.max(0, itemsSubtotal + safeShippingTotal - safeDiscountTotal);
       const shippingQuoteId = sanitizeInteger(shipping_quote_id);
 
       const order = await withTransaction(async (tx) => {
+        const lockedProductsResult = await tx.query(
+          `SELECT p.id, p.nome, p.preco, p.estoque, p.seller_id, p.publicado,
+                  p.weight_kg, p.height_cm, p.width_cm, p.length_cm,
+                  s.user_id as seller_user_id
+           FROM products p
+           JOIN sellers s ON p.seller_id = s.id
+           WHERE p.id = ANY($1::int[])
+           FOR UPDATE OF p`,
+          [uniqueProductIds]
+        );
+        const lockedProducts = lockedProductsResult.rows;
+
+        if (lockedProducts.length !== uniqueProductIds.length) {
+          throw Object.assign(new Error('Um ou mais produtos nao foram encontrados'), { code: 'NOT_FOUND' });
+        }
+
+        const sellerIds = new Set(lockedProducts.map((product) => product.seller_id));
+        if (sellerIds.size !== 1) {
+          throw Object.assign(
+            new Error('No MVP, o carrinho aceita produtos de apenas um vendedor por vez'),
+            { code: 'MULTI_SELLER_NOT_ALLOWED' }
+          );
+        }
+
+        const sellerId = lockedProducts[0].seller_id;
+        const sellerUserId = lockedProducts[0].seller_user_id;
+        if (req.user.id === sellerUserId) {
+          throw Object.assign(new Error('Vendedor nao pode comprar seus proprios produtos'), { code: 'FORBIDDEN' });
+        }
+
+        const productById = new Map(lockedProducts.map((product) => [product.id, product]));
+        const orderItems = items.map((item) => {
+          const productId = sanitizeInteger(item.product_id);
+          const product = productById.get(productId);
+          const quantidade = Math.max(1, sanitizeInteger(item.quantidade) || 1);
+
+          if (!product) {
+            throw Object.assign(new Error(`Produto ${productId} nao encontrado`), { code: 'NOT_FOUND' });
+          }
+          if (!product.publicado) {
+            throw Object.assign(new Error(`Produto ${product.id} nao esta disponivel`), { code: 'PRODUCT_UNAVAILABLE' });
+          }
+
+          return {
+            product,
+            quantidade,
+            preco: parseFloat(product.preco),
+            nameSnapshot: product.nome,
+            weightSnapshot: product.weight_kg,
+            dimensionSnapshot: {
+              height_cm: product.height_cm,
+              width_cm: product.width_cm,
+              length_cm: product.length_cm
+            }
+          };
+        });
+
+        const requestedStockByProduct = new Map();
+        for (const item of orderItems) {
+          const currentQty = requestedStockByProduct.get(item.product.id) || 0;
+          requestedStockByProduct.set(item.product.id, currentQty + item.quantidade);
+        }
+
+        for (const [productId, requestedQty] of requestedStockByProduct.entries()) {
+          const product = productById.get(productId);
+          if (sanitizeInteger(product.estoque) < requestedQty) {
+            throw Object.assign(new Error(`Estoque insuficiente para produto ${productId}`), { code: 'INSUFFICIENT_STOCK' });
+          }
+        }
+
+        const itemsSubtotal = orderItems.reduce((sum, item) => sum + item.preco * item.quantidade, 0);
+        const grandTotal = Math.max(0, itemsSubtotal + safeShippingTotal - safeDiscountTotal);
+
         const orderInsert = await tx.query(
           `INSERT INTO orders (
              comprador_id, vendedor_id, total, items_subtotal, shipping_total, discount_total,
@@ -171,13 +189,16 @@ async function handler(req, res) {
             ]
           );
 
+        }
+
+        for (const [productId, requestedQty] of requestedStockByProduct.entries()) {
           const stockUpdate = await tx.query(
             'UPDATE products SET estoque = estoque - $1 WHERE id = $2 AND estoque >= $1',
-            [item.quantidade, item.product.id]
+            [requestedQty, productId]
           );
 
           if (stockUpdate.rowCount === 0) {
-            throw Object.assign(new Error(`Estoque insuficiente para produto ${item.product.id}`), { code: 'INSUFFICIENT_STOCK' });
+            throw Object.assign(new Error(`Estoque insuficiente para produto ${productId}`), { code: 'INSUFFICIENT_STOCK' });
           }
         }
 
@@ -202,10 +223,13 @@ async function handler(req, res) {
 
       return sendSuccess(res, { order }, 201);
     } catch (error) {
-      if (
-        error.code === 'PRODUCT_UNAVAILABLE' ||
-        error.code === 'INSUFFICIENT_STOCK'
-      ) {
+      if (error.code === 'FORBIDDEN') {
+        return sendError(res, error.code, error.message, 403);
+      }
+      if (error.code === 'NOT_FOUND') {
+        return sendError(res, error.code, error.message, 404);
+      }
+      if (error.code === 'MULTI_SELLER_NOT_ALLOWED' || error.code === 'PRODUCT_UNAVAILABLE' || error.code === 'INSUFFICIENT_STOCK') {
         return sendError(res, error.code, error.message);
       }
       console.error('Erro ao criar pedido:', error);

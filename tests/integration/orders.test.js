@@ -17,7 +17,7 @@ jest.unstable_mockModule('../../backend/auth-middleware.js', () => ({
   }
 }));
 
-const { query, withTransaction } = await import('../../backend/db.js');
+const { withTransaction } = await import('../../backend/db.js');
 const { default: handler } = await import('../../backend/orders/index.js');
 
 describe('Orders API', () => {
@@ -51,9 +51,10 @@ describe('Orders API', () => {
       address_id: 5
     };
 
-    query.mockResolvedValueOnce([
-      { id: 1, preco: 50.00, estoque: 10, seller_id: 1, publicado: true, seller_user_id: 20 }
-    ]);
+    tx.query.mockResolvedValueOnce({
+      rows: [{ id: 1, preco: 50.00, estoque: 10, seller_id: 1, publicado: true, seller_user_id: 20 }],
+      rowCount: 1
+    });
     tx.query.mockResolvedValueOnce({ rows: [{ id: 100 }], rowCount: 1 });
     tx.query.mockResolvedValueOnce({ rows: [], rowCount: 1 });
     tx.query.mockResolvedValueOnce({ rows: [], rowCount: 1 });
@@ -71,9 +72,10 @@ describe('Orders API', () => {
       address_id: 5
     };
 
-    query.mockResolvedValueOnce([
-      { id: 1, preco: 50.00, estoque: 10, seller_id: 1, publicado: true, seller_user_id: 20 }
-    ]);
+    tx.query.mockResolvedValueOnce({
+      rows: [{ id: 1, preco: 50.00, estoque: 10, seller_id: 1, publicado: true, seller_user_id: 20 }],
+      rowCount: 1
+    });
 
     await handler(req, res);
 
@@ -91,9 +93,10 @@ describe('Orders API', () => {
       address_id: 5
     };
 
-    query.mockResolvedValueOnce([
-      { id: 1, preco: 50.00, estoque: 10, seller_id: 1, publicado: true, seller_user_id: 20 }
-    ]);
+    tx.query.mockResolvedValueOnce({
+      rows: [{ id: 1, preco: 50.00, estoque: 10, seller_id: 1, publicado: true, seller_user_id: 20 }],
+      rowCount: 1
+    });
 
     await handler(req, res);
 
@@ -107,10 +110,10 @@ describe('Orders API', () => {
       address_id: 5
     };
 
-    query.mockResolvedValueOnce([
-      { id: 1, preco: 50.00, estoque: 10, seller_id: 1, publicado: true, seller_user_id: 20 }
-    ]);
-
+    tx.query.mockResolvedValueOnce({
+      rows: [{ id: 1, preco: 50.00, estoque: 10, seller_id: 1, publicado: true, seller_user_id: 20 }],
+      rowCount: 1
+    });
     tx.query.mockResolvedValueOnce({ rows: [{ id: 100 }], rowCount: 1 });
     tx.query.mockResolvedValueOnce({ rows: [], rowCount: 1 });
     tx.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
