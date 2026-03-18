@@ -28,25 +28,38 @@ jobs:
           BASE="${{ github.base_ref }}"
           HEAD="${{ github.head_ref }}"
 
+          SPRINT_REGEX='^[A-Za-z0-9][A-Za-z0-9-]*/c[0-9]{2}-s[0-9]{2}-[a-z0-9-]+$'
+          HOTFIX_REGEX='^[A-Za-z0-9][A-Za-z0-9-]*/hotfix-[0-9]{8}-[a-z0-9-]+$'
+
           echo "PR base: ${BASE}"
           echo "PR head: ${HEAD}"
 
           if [[ "${BASE}" == "develop" ]]; then
-            if [[ ! "${HEAD}" =~ ^sprint/[0-9]{2}(-[a-z0-9-]+)?$ ]]; then
-              echo "PR para develop deve vir de branch sprint/NN ou sprint/NN-descricao."
+            if [[ "${HEAD}" == "main" ]]; then
+              echo "PR de sincronizacao main -> develop permitido."
+              exit 0
+            fi
+
+            if [[ ! "${HEAD}" =~ ${SPRINT_REGEX} ]]; then
+              echo "PR para develop deve vir de branch no padrao autor/cCC-sSS-descricao."
               exit 1
             fi
           fi
 
           if [[ "${BASE}" == "main" ]]; then
-            if [[ "${HEAD}" != "develop" ]]; then
-              echo "PR para main deve vir somente da branch develop."
+            if [[ "${HEAD}" == "develop" ]]; then
+              echo "PR de release develop -> main permitido."
+              exit 0
+            fi
+
+            if [[ ! "${HEAD}" =~ ${HOTFIX_REGEX} ]]; then
+              echo "PR para main deve vir de develop ou de branch autor/hotfix-YYYYMMDD-descricao."
               exit 1
             fi
           fi
 
-  test:
-    name: Lint and Tests
+  lint:
+    name: lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -61,11 +74,65 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run linter
+      - name: Run lint
         run: npm run lint
 
-      - name: Run dependency audit (non-blocking)
-        run: npm run audit || true
+  unit-tests:
+    name: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Run tests
-        run: npm test
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+  integration-tests:
+    name: integration-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+  e2e-tests:
+    name: e2e-tests
+    runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run e2e tests
+        run: npm run test:e2e
