@@ -1,38 +1,71 @@
-name: CI - Testes e Validação
+name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
+  branch-policy:
+    name: Branch Policy
     runs-on: ubuntu-latest
-
+    if: github.event_name == 'pull_request'
     steps:
-    - uses: actions/checkout@v4
+      - name: Validate PR source/target policy
+        shell: bash
+        run: |
+          set -euo pipefail
 
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
+          BASE="${{ github.base_ref }}"
+          HEAD="${{ github.head_ref }}"
 
-    - name: Instalar dependências
-      run: npm install
+          echo "PR base: ${BASE}"
+          echo "PR head: ${HEAD}"
 
-    - name: Executar análise estática (Linter)
-      run: npm run lint
+          if [[ "${BASE}" == "develop" ]]; then
+            if [[ ! "${HEAD}" =~ ^sprint/[0-9]{2}(-[a-z0-9-]+)?$ ]]; then
+              echo "PR para develop deve vir de branch sprint/NN ou sprint/NN-descricao."
+              exit 1
+            fi
+          fi
 
-    - name: Verificar vulnerabilidades em dependências (SCA)
-      run: npm run audit || true # Não quebra a build agora, mas reporta
+          if [[ "${BASE}" == "main" ]]; then
+            if [[ "${HEAD}" != "develop" ]]; then
+              echo "PR para main deve vir somente da branch develop."
+              exit 1
+            fi
+          fi
 
-    - name: Executar testes unitários e de integração
-      run: npm test
+  test:
+    name: Lint and Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    # No futuro podemos adicionar Playwright aqui para testes E2E
-    # - name: Install Playwright Browsers
-    #   run: npx playwright install --with-deps
-    # - name: Run Playwright tests
-    #   run: npx playwright test
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run dependency audit (non-blocking)
+        run: npm run audit || true
+
+      - name: Run tests
+        run: npm test
