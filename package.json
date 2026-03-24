@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vercel dev",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit",
+    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/integration",
+    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/e2e --passWithNoTests",
     "lint": "eslint .",
     "audit": "npm audit",
     "db:migrate": "node scripts/migrate.js up",

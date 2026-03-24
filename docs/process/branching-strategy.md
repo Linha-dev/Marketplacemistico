@@ -1,56 +1,98 @@
-# Branching Strategy
+# Branching Strategy e PR Rules
 
 ## Objetivo
-Definir o fluxo oficial de desenvolvimento para separar ambiente de producao e ambiente de desenvolvimento.
+Padronizar o fluxo de desenvolvimento para proteger producao e dar previsibilidade ao ciclo de sprints.
 
-## Ambientes por branch
-- `main`: ambiente de producao.
-- `develop`: ambiente de desenvolvimento/integracao.
+## Branches oficiais
+- `main`: producao (estavel).
+- `develop`: integracao de desenvolvimento.
 
-## Regras operacionais
-1. Toda sprint nasce de `develop`.
-2. Toda branch de sprint deve seguir o padrao: `sprint/NN-descricao`.
-3. Cada sprint abre PR para `develop`.
-4. Merge em `develop` somente com CI verde.
-5. `main` recebe mudancas apenas via PR manual de `develop` para `main`.
-6. Nenhuma sprint abre PR direto para `main`.
+## Convencao de branch
 
-## Fluxo da sprint
-```bash
-git checkout develop
-git pull origin develop
-git checkout -b sprint/13-alertas-runbook
+### Sprint
+- Padrao obrigatorio: `autor/cCC-sSS-descricao`
+- Onde:
+  - `autor`: nick de quem implementou.
+  - `CC`: ciclo com 2 digitos.
+  - `SS`: sprint com 2 digitos.
+  - `descricao`: resumo tecnico curto em minusculo e com hifen.
 
-# desenvolvimento...
-git add .
-git commit -m "feat: entrega sprint 13"
-git push -u origin sprint/13-alertas-runbook
-```
+Exemplos:
+- `codex/c02-s26-motor-custo-total`
+- `VictordgDev/c02-s27-segregacao-quote`
 
-Depois:
-1. Abrir PR `sprint/...` -> `develop`.
-2. Aguardar CI (lint + testes + politica de branch).
-3. Corrigir o que falhar e atualizar PR.
-4. Fazer merge apenas com CI aprovado.
+### Hotfix
+- Padrao obrigatorio: `autor/hotfix-YYYYMMDD-descricao`
+- Exemplo:
+  - `VictordgDev/hotfix-20260318-falha-webhook-efi`
 
-## Fluxo de release para producao
-1. Abrir PR `develop` -> `main`.
-2. Revisao e aprovacao manual no GitHub.
-3. Merge manual.
+## Regras obrigatorias
+1. Nao fazer push direto em `main`.
+2. Nao fazer push direto em `develop`.
+3. Toda mudanca entra por Pull Request.
+4. Sprint branch abre PR somente para `develop`.
+5. `main` recebe mudanca apenas de `develop` (release) ou hotfix.
 
-## Protecoes recomendadas no GitHub
+## Politica de merge
+- `develop`: merge por PR com CI verde.
+- `main`: merge manual por PR aprovado + CI verde.
+- Hotfix em `main`: apos merge, abrir PR `main -> develop` para sincronizar.
+
+## Fluxo de sprint
+1. Criar branch a partir de `develop`.
+2. Implementar, commitar e abrir PR para `develop`.
+3. Corrigir o que falhar no CI.
+4. Merge apenas com checks obrigatorios aprovados.
+
+## Fluxo de release
+1. Abrir PR `develop -> main`.
+2. Validar checks obrigatorios.
+3. Aprovar manualmente e fazer merge.
+
+## Fluxo de hotfix
+1. Criar `autor/hotfix-YYYYMMDD-descricao` a partir de `main`.
+2. Corrigir e validar.
+3. Abrir PR para `main`.
+4. Apos merge, abrir PR `main -> develop`.
+
+## Checks obrigatorios (CI)
+- `Branch Policy` (valida origem/destino e padrao da branch)
+- `lint`
+- `unit-tests`
+- `integration-tests`
+- `e2e-tests` para PR `develop -> main`
+
+## Protecao recomendada no GitHub
 Configurar em `Settings > Branches`:
 
 ### `main`
 - Require a pull request before merging.
 - Require approvals (minimo 1).
-- Require status checks to pass before merging.
+- Require status checks to pass before merging:
   - `Branch Policy`
-  - `Lint and Tests`
+  - `lint`
+  - `unit-tests`
+  - `integration-tests`
+  - `e2e-tests`
+- Do not allow bypassing the above settings.
 - Restrict pushes diretos.
 
 ### `develop`
-- Require status checks to pass before merging.
+- Require a pull request before merging.
+- Require status checks to pass before merging:
   - `Branch Policy`
-  - `Lint and Tests`
-- Opcional: bloquear merge com conversa nao resolvida.
+  - `lint`
+  - `unit-tests`
+  - `integration-tests`
+- Do not allow bypassing the above settings.
+
+## Vercel
+- `main` = Production Branch.
+- `develop` e branches de sprint/hotfix = Preview.
+- Variaveis separadas por `Production` e `Preview`.
+
+## Script utilitario
+Para criar branch padronizada, usar:
+```powershell
+./scripts/new-sprint-branch.ps1 -Type sprint -AuthorNick VictordgDev -CycleNumber 2 -SprintNumber 19 -Description "ajuste-carrinho"
+```
