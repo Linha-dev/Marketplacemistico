@@ -4,6 +4,8 @@
   "type": "module",
   "main": "backend/db.js",
   "scripts": {
+    "build": "node scripts/migrate.js up && next build",
+    "migrate": "node scripts/migrate.js up",
     "dev": "vercel dev",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit",
