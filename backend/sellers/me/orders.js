@@ -3,6 +3,7 @@ import { sanitizeInteger } from '../../sanitize.js';
 import { sendSuccess, sendError } from '../../response.js';
 import { withCors } from '../../middleware.js';
 import { requireVendedor } from '../../auth-middleware.js';
+import { logError } from '../../observability/logger.js';
 
 async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -47,7 +48,7 @@ async function handler(req, res) {
       }
     });
   } catch (error) {
-    console.error('Erro ao buscar pedidos do vendedor:', error);
+    logError('sellers.orders.get.error', error);
     return sendError(res, 'INTERNAL_ERROR', 'Erro ao buscar pedidos', 500);
   }
 }

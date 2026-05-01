@@ -2,6 +2,7 @@ import { query } from '../db.js';
 import { sendSuccess, sendError } from '../response.js';
 import { withCors } from '../middleware.js';
 import { requireAuth } from '../auth-middleware.js';
+import { logError } from '../observability/logger.js';
 
 async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -26,7 +27,7 @@ async function handler(req, res) {
 
     return sendSuccess(res, { user: { ...users[0], role: req.user.role } });
   } catch (error) {
-    console.error('Erro ao buscar usuário autenticado:', error);
+    logError('auth.me.error', error);
     return sendError(res, 'INTERNAL_ERROR', 'Erro ao buscar dados do usuário', 500);
   }
 }

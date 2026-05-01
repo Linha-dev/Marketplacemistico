@@ -17,8 +17,7 @@ export function logError(event, error, fields = {}) {
     ...fields,
     error: {
       message: error?.message || String(error),
-      code: error?.code || null,
-      stack: error?.stack || null
+      code: error?.code || null
     }
   };
 

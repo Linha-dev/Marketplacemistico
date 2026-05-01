@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { withCors } from '../../middleware.js';
 import { sendError } from '../../response.js';
 import { resolveUserRole } from '../../rbac.js';
+import { logError } from '../../observability/logger.js';
 
 async function handler(req, res) {
   const { code } = req.query;
@@ -39,7 +40,7 @@ async function handler(req, res) {
     const tokenData = await tokenResponse.json();
 
     if (tokenData.error) {
-      console.error('Erro ao trocar código por token:', tokenData);
+      logError('auth.google.token_exchange_error', new Error(tokenData.error_description || tokenData.error));
       return sendError(res, 'AUTH_ERROR', 'Erro ao validar código com Google');
     }
 
@@ -83,7 +84,7 @@ async function handler(req, res) {
     const token = jwt.sign(
       { id: user.id, email: user.email, tipo: user.tipo, role: resolveUserRole(user) },
       secret,
-      { expiresIn: '7d' }
+      { expiresIn: '2h' }
     );
 
     // 5. Redirecionar de volta para o frontend com o token
@@ -122,7 +123,7 @@ async function handler(req, res) {
     res.end();
 
   } catch (error) {
-    console.error('Erro no callback do Google:', error);
+    logError('auth.google.callback_error', error);
     return sendError(res, 'INTERNAL_ERROR', 'Erro interno no processamento do login Google', 500);
   }
 }

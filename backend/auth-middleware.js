@@ -9,8 +9,7 @@ function verifyToken(req) {
   const token = authHeader.slice(7);
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    console.error('ERRO CRITICO: JWT_SECRET nao configurada!');
-    return null;
+    throw new Error('JWT_SECRET nao configurada');
   }
 
   try {

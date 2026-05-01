@@ -28,11 +28,12 @@ export async function efiWebhookController(req, res) {
     }
 
     const webhookSecret = process.env.EFI_WEBHOOK_SECRET;
-    if (webhookSecret) {
-      const receivedSecret = sanitizeWebhookSecretHeader(req.headers);
-      if (receivedSecret !== webhookSecret) {
-        return sendError(res, 'UNAUTHORIZED', 'Webhook sem autorizacao', 401);
-      }
+    if (!webhookSecret) {
+      throw new Error('EFI_WEBHOOK_SECRET nao configurada');
+    }
+    const receivedSecret = sanitizeWebhookSecretHeader(req.headers);
+    if (receivedSecret !== webhookSecret) {
+      return sendError(res, 'UNAUTHORIZED', 'Webhook sem autorizacao', 401);
     }
 
     const payload = await processEfiWebhook(req.headers, req.body, req.correlationId || null);
@@ -86,11 +87,12 @@ export async function melhorEnvioWebhookController(req, res) {
     }
 
     const webhookSecret = process.env.MELHOR_ENVIO_WEBHOOK_SECRET;
-    if (webhookSecret) {
-      const receivedSecret = sanitizeWebhookSecretHeader(req.headers);
-      if (receivedSecret !== webhookSecret) {
-        return sendError(res, 'UNAUTHORIZED', 'Webhook sem autorizacao', 401);
-      }
+    if (!webhookSecret) {
+      throw new Error('MELHOR_ENVIO_WEBHOOK_SECRET nao configurada');
+    }
+    const receivedSecret = sanitizeWebhookSecretHeader(req.headers);
+    if (receivedSecret !== webhookSecret) {
+      return sendError(res, 'UNAUTHORIZED', 'Webhook sem autorizacao', 401);
     }
 
     const payload = await processMelhorEnvioWebhook(req.body);

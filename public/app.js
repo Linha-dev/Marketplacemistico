@@ -76,9 +76,24 @@ let shoppingCart = [];
 let _currentFilter = 'Todos';
 
 // ==================== HELPERS ====================
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+const debug = window.DEBUG_MODE
+    ? console
+    : { log: () => {}, error: () => {}, warn: () => {} };
+
 function getProductImageHTML(product) {
     if (product.imagem_url) {
-        return `<img src="${product.imagem_url}" alt="${product.nome}">`;
+        return `<img src="${escapeHtml(product.imagem_url)}" alt="${escapeHtml(product.nome)}">`;
     }
     return '<div class="no-image">Sem imagem</div>';
 }
@@ -119,7 +134,7 @@ async function apiRequest(endpoint, options = {}) {
         // Return the unwrapped payload from the standardized envelope
         return data.data !== undefined ? data.data : data;
     } catch (error) {
-        console.error('API Request Error:', error);
+        debug.error('API Request Error:', error);
         throw error;
     }
 }
@@ -134,7 +149,7 @@ async function loadProducts(categoria = 'Todos') {
         products = data.products;
         renderProducts();
     } catch (error) {
-        console.error('Erro ao carregar produtos:', error);
+        debug.error('Erro ao carregar produtos:', error);
     }
 }
 
@@ -145,15 +160,15 @@ async function loadSellerProducts() {
         const data = await apiRequest(`/products?seller_id=${currentUser.seller_id}`);
         renderSellerProducts(data.products);
     } catch (error) {
-        console.error('Erro ao carregar produtos do vendedor:', error);
+        debug.error('Erro ao carregar produtos do vendedor:', error);
     }
 }
 
 // ==================== NAVEGAÇÃO ====================
 function toggleUserMode() {
-    console.log('🔄 toggleUserMode() chamado');
-    console.log('👤 currentUser:', currentUser);
-    console.log('📍 activeMode atual:', activeMode);
+    debug.log('🔄 toggleUserMode() chamado');
+    debug.log('👤 currentUser:', currentUser);
+    debug.log('📍 activeMode atual:', activeMode);
     
     if (!currentUser) {
         alert('Você precisa estar logado para alternar entre modos');
@@ -173,7 +188,7 @@ function toggleUserMode() {
         activeMode = 'cliente';
     }
     
-    console.log('📍 Novo activeMode:', activeMode);
+    debug.log('📍 Novo activeMode:', activeMode);
     
     // Save to localStorage
     localStorage.setItem('activeMode', activeMode);
@@ -225,37 +240,37 @@ function updateModeToggleButton() {
 }
 
 function navigateHome() {
-    console.log('🏠 navigateHome() chamado');
-    console.log('👤 currentUser:', currentUser);
-    console.log('📍 activeMode:', activeMode);
+    debug.log('🏠 navigateHome() chamado');
+    debug.log('👤 currentUser:', currentUser);
+    debug.log('📍 activeMode:', activeMode);
     
     const user = getCurrentUser();
     
     if (!user) {
-        console.log('➡️ Sem usuário, indo para marketplace');
+        debug.log('➡️ Sem usuário, indo para marketplace');
         showPage('marketplace');
         loadProducts();
     } else if (user.tipo === 'vendedor') {
         // For vendors, use activeMode to determine which dashboard to show
         if (activeMode === 'cliente') {
-            console.log('➡️ Vendedor em modo Cliente, indo para dashboard-cliente');
+            debug.log('➡️ Vendedor em modo Cliente, indo para dashboard-cliente');
             showPage('dashboard-cliente');
             loadProducts();
             populateClienteDashboard();
         } else {
-            console.log('➡️ Vendedor em modo Vendedor, indo para dashboard-vendedor');
+            debug.log('➡️ Vendedor em modo Vendedor, indo para dashboard-vendedor');
             showPage('dashboard-vendedor');
             loadSellerProducts();
             populateSellerDashboard();
         }
     } else if (user.tipo === 'cliente') {
-        console.log('➡️ Cliente, indo para dashboard-cliente');
+        debug.log('➡️ Cliente, indo para dashboard-cliente');
         activeMode = 'cliente'; // Ensure clients stay in cliente mode
         showPage('dashboard-cliente');
         loadProducts();
         populateClienteDashboard();
     } else {
-        console.log('➡️ Tipo desconhecido, indo para marketplace');
+        debug.log('➡️ Tipo desconhecido, indo para marketplace');
         showPage('marketplace');
         loadProducts();
     }
@@ -316,7 +331,7 @@ function setUserTypeAndRegister(userType) {
 }
 
 function showDashboardSection(userType, section) {
-    console.log(`📊 Mostrando seção ${section} para ${userType}`);
+    debug.log(`📊 Mostrando seção ${section} para ${userType}`);
     
     // For now, just show the appropriate page based on section
     if (section === 'carrinho') {
@@ -387,7 +402,7 @@ function populateSellerProfile() {
                 setDisplayText('display-total-produtos', productCount);
             })
             .catch(err => {
-                console.error('Erro ao carregar contagem de produtos:', err);
+                debug.error('Erro ao carregar contagem de produtos:', err);
             });
     }
 }
@@ -450,7 +465,7 @@ async function loadStoreData(sellerId) {
         renderStoreProducts(sellerProducts);
         
     } catch (error) {
-        console.error('Erro ao carregar dados da loja:', error);
+        debug.error('Erro ao carregar dados da loja:', error);
         alert('Erro ao carregar dados da loja');
     }
 }
@@ -475,8 +490,8 @@ function renderStoreProducts(storeProducts) {
                 ${getProductImageHTML(product)}
             </div>
             <div class="product-info">
-                <h3>${product.nome}</h3>
-                <p class="product-description">${product.descricao || ''}</p>
+                <h3>${escapeHtml(product.nome)}</h3>
+                <p class="product-description">${escapeHtml(product.descricao || '')}</p>
                 <p class="product-price">R$ ${(parseFloat(product.preco) || 0).toFixed(2).replace('.', ',')}</p>
                 <button onclick="addToCart(${product.id})" class="btn-primary">Adicionar ao Carrinho</button>
             </div>
@@ -572,7 +587,7 @@ function cancelAddProduct() {
 
 function contactSeller(_sellerId) {
     // Future implementation: contact seller
-    console.log('Contatando vendedor:', _sellerId);
+    debug.log('Contatando vendedor:', _sellerId);
     alert('Funcionalidade de contato em desenvolvimento');
 }
 
@@ -704,7 +719,7 @@ function showMessage(containerId, message, isError = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
     const className = isError ? 'error-alert' : 'success-message';
-    container.innerHTML = `<div class="${className}">${message}</div>`;
+    container.innerHTML = `<div class="${className}">${escapeHtml(message)}</div>`;
 }
 
 // ==================== AUTENTICAÇÃO ====================
@@ -808,13 +823,13 @@ async function login(event) {
     event.preventDefault();
     clearMessages();
 
-    console.log('=== INÍCIO DO LOGIN ===');
+    debug.log('=== INÍCIO DO LOGIN ===');
 
     const emailInput = document.getElementById('login-email');
     const senhaInput = document.getElementById('login-senha');
 
     if (!emailInput || !senhaInput) {
-        console.error('❌ Campos do formulário não encontrados!');
+        debug.error('❌ Campos do formulário não encontrados!');
         alert('ERRO: Campos do formulário não encontrados. Verifique o HTML.');
         return;
     }
@@ -822,17 +837,17 @@ async function login(event) {
     const email = emailInput.value.trim();
     const senha = senhaInput.value;
 
-    console.log('📧 Email:', email);
-    console.log('🔑 Senha:', senha ? '***' : 'vazia');
+    debug.log('📧 Email:', email);
+    debug.log('🔑 Senha:', senha ? '***' : 'vazia');
 
     if (!email || !senha) {
-        console.warn('⚠️ Email ou senha vazios');
+        debug.warn('⚠️ Email ou senha vazios');
         showMessage('login-messages', 'Por favor, preencha email e senha', true);
         return;
     }
 
     try {
-        console.log('📡 Fazendo requisição para /api/auth/login...');
+        debug.log('📡 Fazendo requisição para /api/auth/login...');
         
         const url = '/api/auth/login';
         const options = {
@@ -843,36 +858,36 @@ async function login(event) {
             body: JSON.stringify({ email, senha })
         };
 
-        console.log('📤 URL:', url);
+        debug.log('📤 URL:', url);
 
         const response = await fetch(url, options);
 
-        console.log('📨 Response status:', response.status);
-        console.log('📨 Response ok:', response.ok);
+        debug.log('📨 Response status:', response.status);
+        debug.log('📨 Response ok:', response.ok);
 
         const data = await response.json();
-        console.log('📦 Response data:', data);
+        debug.log('📦 Response data:', data);
 
         if (!response.ok) {
-            console.error('❌ Erro na resposta:', data.error);
+            debug.error('❌ Erro na resposta:', data.error);
             throw new Error((data.error && data.error.message) || data.error || 'Erro ao fazer login');
         }
 
         if (!data.success) {
-            console.error('❌ Login falhou:', data);
+            debug.error('❌ Login falhou:', data);
             throw new Error((data.error && data.error.message) || data.error || 'Login falhou');
         }
 
         const payload = data.data || data;
 
         if (!payload.token) {
-            console.error('❌ Token não recebido:', data);
+            debug.error('❌ Token não recebido:', data);
             throw new Error('Token não recebido do servidor');
         }
 
-        console.log('✅ Login bem-sucedido!');
-        console.log('🎫 Token:', payload.token.substring(0, 20) + '...');
-        console.log('👤 User:', payload.user);
+        debug.log('✅ Login bem-sucedido!');
+        debug.log('🎫 Token:', payload.token.substring(0, 20) + '...');
+        debug.log('👤 User:', payload.user);
 
         authToken = payload.token;
         currentUser = payload.user;
@@ -898,20 +913,20 @@ async function login(event) {
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         localStorage.setItem('activeMode', activeMode);
 
-        console.log('💾 Dados salvos no localStorage');
+        debug.log('💾 Dados salvos no localStorage');
 
         updateNavbar();
         
-        console.log('🏠 Navegando para home...');
+        debug.log('🏠 Navegando para home...');
         navigateHome();
         
         document.getElementById('loginForm').reset();
 
-        console.log('=== LOGIN CONCLUÍDO ===');
+        debug.log('=== LOGIN CONCLUÍDO ===');
 
     } catch (error) {
-        console.error('💥 ERRO CAPTURADO:', error);
-        console.error('Stack:', error.stack);
+        debug.error('💥 ERRO CAPTURADO:', error);
+        debug.error('Stack:', error.stack);
         showMessage('login-messages', error.message, true);
     }
 }
@@ -1015,7 +1030,7 @@ async function deleteProduct(productId) {
 
 // ==================== RENDERIZAÇÃO ====================
 function updateNavbar() {
-    console.log('🔄 Atualizando navbar...');
+    debug.log('🔄 Atualizando navbar...');
     
     // Desktop navigation elements
     const navLoginLink = document.getElementById('nav-login-link');
@@ -1030,7 +1045,7 @@ function updateNavbar() {
     const mobileCartLink = document.getElementById('mobile-cart-link');
 
     if (currentUser) {
-        console.log('✅ Usuário logado:', currentUser.tipo);
+        debug.log('✅ Usuário logado:', currentUser.tipo);
         
         // Hide login/register links
         if (navLoginLink) navLoginLink.style.display = 'none';
@@ -1061,7 +1076,7 @@ function updateNavbar() {
         // Update mode toggle button
         updateModeToggleButton();
     } else {
-        console.log('ℹ️ Sem usuário, mostrando botões de auth');
+        debug.log('ℹ️ Sem usuário, mostrando botões de auth');
         
         // Show login/register links
         if (navLoginLink) navLoginLink.style.display = 'block';
@@ -1096,7 +1111,7 @@ function renderProducts(productsToRender = products) {
     const container = document.getElementById('products-grid');
     
     if (!container) {
-        console.error('Container products-grid não encontrado');
+        debug.error('Container products-grid não encontrado');
         return;
     }
     
@@ -1111,9 +1126,9 @@ function renderProducts(productsToRender = products) {
                 ${getProductImageHTML(product)}
             </div>
             <div class="product-info">
-                <h3>${product.nome}</h3>
-                <p class="product-description">${product.descricao || ''}</p>
-                <p class="product-seller">Vendido por: ${product.nome_loja}</p>
+                <h3>${escapeHtml(product.nome)}</h3>
+                <p class="product-description">${escapeHtml(product.descricao || '')}</p>
+                <p class="product-seller">Vendido por: ${escapeHtml(product.nome_loja)}</p>
                 <p class="product-price">R$ ${(parseFloat(product.preco) || 0).toFixed(2).replace('.', ',')}</p>
                 <button onclick="addToCart(${product.id})" class="btn-primary">Adicionar ao Carrinho</button>
             </div>
@@ -1125,7 +1140,7 @@ function renderSellerProducts(sellerProducts) {
     const container = document.getElementById('seller-products-content');
     
     if (!container) {
-        console.error('Container seller-products-content não encontrado');
+        debug.error('Container seller-products-content não encontrado');
         return;
     }
     
@@ -1155,10 +1170,10 @@ function renderSellerProducts(sellerProducts) {
                 ${sellerProducts.map(product => `
                     <tr>
                         <td>
-                            <strong>${product.nome}</strong><br>
-                            <small>${product.descricao ? product.descricao.substring(0, 50) + '...' : ''}</small>
+                            <strong>${escapeHtml(product.nome)}</strong><br>
+                            <small>${escapeHtml(product.descricao ? product.descricao.substring(0, 50) + '...' : '')}</small>
                         </td>
-                        <td>${product.categoria}</td>
+                        <td>${escapeHtml(product.categoria)}</td>
                         <td>R$ ${(parseFloat(product.preco) || 0).toFixed(2).replace('.', ',')}</td>
                         <td>${product.estoque}</td>
                         <td>
@@ -1271,8 +1286,8 @@ function renderCart() {
     container.innerHTML = shoppingCart.map(item => `
         <div class="cart-item">
             <div class="cart-item-info">
-                <h4>${item.nome}</h4>
-                <p>Vendido por: ${item.nome_loja}</p>
+                <h4>${escapeHtml(item.nome)}</h4>
+                <p>Vendido por: ${escapeHtml(item.nome_loja)}</p>
                 <p class="product-price">R$ ${(parseFloat(item.preco) || 0).toFixed(2).replace('.', ',')}</p>
             </div>
             <div class="cart-item-actions">
@@ -1491,7 +1506,7 @@ async function upgradeToVendor(event) {
             populateSellerDashboard();
             }, 2000);
     } catch (error) {
-        console.error('Erro ao se tornar vendedor:', error);
+        debug.error('Erro ao se tornar vendedor:', error);
         showMessage('vendor-registration-messages', error.message, true);
     }
 }
@@ -1544,7 +1559,7 @@ async function updateSellerProfile(event) {
         }, 1500);
         
     } catch (error) {
-        console.error('Erro ao atualizar perfil:', error);
+        debug.error('Erro ao atualizar perfil:', error);
         showMessage('profile-edit-messages', error.message, true);
     }
 }
@@ -1600,14 +1615,14 @@ async function updateClienteProfile(event) {
         }, 1500);
         
     } catch (error) {
-        console.error('Erro ao atualizar perfil:', error);
+        debug.error('Erro ao atualizar perfil:', error);
         showMessage('cliente-profile-edit-messages', error.message, true);
     }
 }
 
 // ==================== INICIALIZAÇÃO ====================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Inicializando aplicação...');
+    debug.log('🚀 Inicializando aplicação...');
     
     // Attach form event listeners
     const registrationForm = document.getElementById('registrationForm');
@@ -1617,30 +1632,30 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (registrationForm) {
         registrationForm.addEventListener('submit', register);
-        console.log('✅ Registration form event listener attached');
+        debug.log('✅ Registration form event listener attached');
     } else {
-        console.error('❌ Registration form not found!');
+        debug.error('❌ Registration form not found!');
     }
     
     if (loginForm) {
         loginForm.addEventListener('submit', login);
-        console.log('✅ Login form event listener attached');
+        debug.log('✅ Login form event listener attached');
     } else {
-        console.error('❌ Login form not found!');
+        debug.error('❌ Login form not found!');
     }
     
     if (addProductForm) {
         addProductForm.addEventListener('submit', addProduct);
-        console.log('✅ Add product form event listener attached');
+        debug.log('✅ Add product form event listener attached');
     } else {
-        console.log('ℹ️ Add product form not found (will be attached when page loads)');
+        debug.log('ℹ️ Add product form not found (will be attached when page loads)');
     }
     
     if (vendorRegistrationForm) {
         vendorRegistrationForm.addEventListener('submit', upgradeToVendor);
-        console.log('✅ Vendor registration form event listener attached');
+        debug.log('✅ Vendor registration form event listener attached');
     } else {
-        console.log('ℹ️ Vendor registration form not found (will be attached when page loads)');
+        debug.log('ℹ️ Vendor registration form not found (will be attached when page loads)');
     }
     
     const editProfileForm = document.getElementById('editProfileForm');
@@ -1648,16 +1663,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (editProfileForm) {
         editProfileForm.addEventListener('submit', updateSellerProfile);
-        console.log('✅ Edit seller profile form event listener attached');
+        debug.log('✅ Edit seller profile form event listener attached');
     } else {
-        console.log('ℹ️ Edit seller profile form not found (will be attached when page loads)');
+        debug.log('ℹ️ Edit seller profile form not found (will be attached when page loads)');
     }
     
     if (editClienteProfileForm) {
         editClienteProfileForm.addEventListener('submit', updateClienteProfile);
-        console.log('✅ Edit cliente profile form event listener attached');
+        debug.log('✅ Edit cliente profile form event listener attached');
     } else {
-        console.log('ℹ️ Edit cliente profile form not found (will be attached when page loads)');
+        debug.log('ℹ️ Edit cliente profile form not found (will be attached when page loads)');
     }
     
     // Populate estado selects
@@ -1683,7 +1698,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userFromUrl = urlParams.get('user');
 
     if (tokenFromUrl && userFromUrl) {
-        console.log('🎫 Token e usuário encontrados na URL. Salvando sessão...');
+        debug.log('🎫 Token e usuário encontrados na URL. Salvando sessão...');
         try {
             authToken = tokenFromUrl;
             currentUser = JSON.parse(decodeURIComponent(userFromUrl));
@@ -1695,14 +1710,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Clean URL
             window.history.replaceState({}, document.title, "/");
-            console.log('✅ Sessão do Google salva!');
+            debug.log('✅ Sessão do Google salva!');
         } catch (e) {
-            console.error('Erro ao processar dados de login do Google:', e);
+            debug.error('Erro ao processar dados de login do Google:', e);
         }
     }
 
     if (savedToken && savedUser && !tokenFromUrl) {
-        console.log('📝 Restaurando sessão do localStorage...');
+        debug.log('📝 Restaurando sessão do localStorage...');
         authToken = savedToken;
         currentUser = JSON.parse(savedUser);
         
@@ -1715,16 +1730,16 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('activeMode', activeMode);
         }
         
-        console.log('✅ Sessão restaurada:', currentUser);
-        console.log('📍 activeMode restaurado:', activeMode);
+        debug.log('✅ Sessão restaurada:', currentUser);
+        debug.log('📍 activeMode restaurado:', activeMode);
         updateNavbar();
     } else if (tokenFromUrl) {
         // Just updated state from URL, update navbar
         updateNavbar();
     } else {
-        console.log('ℹ️ Sem sessão salva');
+        debug.log('ℹ️ Sem sessão salva');
     }
 
-    console.log('🏠 Navegando para home...');
+    debug.log('🏠 Navegando para home...');
     navigateHome();
 });
