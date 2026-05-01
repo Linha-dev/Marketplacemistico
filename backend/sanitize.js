@@ -334,7 +334,7 @@ export function validateImageUrl(url) {
   try {
     new URL(trimmed);
   } catch {
-    return { ok: false, reason: 'URL da imagem invalida' };
+    return { ok: false, reason: 'URL da imagem inválida' };
   }
   return { ok: true, value: trimmed.slice(0, 2000) };
 }

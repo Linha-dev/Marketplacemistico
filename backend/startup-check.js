@@ -9,6 +9,6 @@ const required = [
 for (const key of required) {
   // eslint-disable-next-line security/detect-object-injection
   if (!process.env[key]) {
-    throw new Error(`Variavel de ambiente obrigatoria nao configurada: ${key}`);
+    throw new Error(`Variável de ambiente obrigatória nao configurada: ${key}`);
   }
 }

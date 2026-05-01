@@ -29,7 +29,7 @@ export async function efiWebhookController(req, res) {
 
     const webhookSecret = process.env.EFI_WEBHOOK_SECRET;
     if (!webhookSecret) {
-      throw new Error('EFI_WEBHOOK_SECRET nao configurada');
+      throw new Error('EFI_WEBHOOK_SECRET não configurada');
     }
     const receivedSecret = sanitizeWebhookSecretHeader(req.headers);
     if (receivedSecret !== webhookSecret) {
@@ -88,7 +88,7 @@ export async function melhorEnvioWebhookController(req, res) {
 
     const webhookSecret = process.env.MELHOR_ENVIO_WEBHOOK_SECRET;
     if (!webhookSecret) {
-      throw new Error('MELHOR_ENVIO_WEBHOOK_SECRET nao configurada');
+      throw new Error('MELHOR_ENVIO_WEBHOOK_SECRET não configurada');
     }
     const receivedSecret = sanitizeWebhookSecretHeader(req.headers);
     if (receivedSecret !== webhookSecret) {

@@ -22,7 +22,7 @@ export function withCors(handler) {
 
     const allowedOrigin = process.env.ALLOWED_ORIGIN;
     if (!allowedOrigin) {
-      throw new Error('ALLOWED_ORIGIN nao configurada');
+      throw new Error('ALLOWED_ORIGIN não configurada');
     }
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
