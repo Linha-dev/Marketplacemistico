@@ -34,9 +34,7 @@ export async function query(text, params = []) {
     const result = await sql(text, params);
     return result;
   } catch (error) {
-    console.error('Database query error:', error);
-    console.error('Query:', text);
-    console.error('Params:', params);
+    console.error('Database error:', error.message);
     throw error;
   }
 }
@@ -53,7 +51,7 @@ export async function withTransaction(callback) {
     try {
       await client.query('ROLLBACK');
     } catch (rollbackError) {
-      console.error('Erro no rollback da transacao:', rollbackError);
+      console.error('Rollback error:', rollbackError.message);
     }
     throw error;
   } finally {

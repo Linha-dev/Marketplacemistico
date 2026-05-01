@@ -1,6 +1,7 @@
 import { query } from './db.js';
 import { sendSuccess, sendError } from './response.js';
 import { withCors } from './middleware.js';
+import { logError } from './observability/logger.js';
 
 async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -12,7 +13,7 @@ async function handler(req, res) {
     await query('SELECT 1');
     dbStatus = 'connected';
   } catch (err) {
-    console.error('Health check DB error:', err);
+    logError('health.db.error', err);
   }
 
   const version = '1.0.0';

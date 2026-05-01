@@ -5,13 +5,19 @@ import { sanitizeEmail } from '../sanitize.js';
 import { sendSuccess, sendError } from '../response.js';
 import { withCors } from '../middleware.js';
 import { resolveUserRole } from '../rbac.js';
+import { logError } from '../observability/logger.js';
+import { createRateLimit } from '../rate-limit.js';
+
+const authLimiter = createRateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 10,
+  message: 'Muitas tentativas de login. Aguarde alguns minutos.'
+});
 
 async function handler(req, res) {
   if (req.method !== 'POST') {
     return sendError(res, 'METHOD_NOT_ALLOWED', 'Método não permitido', 405);
   }
-
-  console.log('🔑 Tentativa de login...');
 
   try {
     let { email, senha } = req.body;
@@ -22,7 +28,6 @@ async function handler(req, res) {
       return sendError(res, 'VALIDATION_ERROR', 'Email e senha são obrigatórios');
     }
 
-    console.log('🔍 Buscando usuário:', email);
     const users = await query(
       `SELECT u.*, s.id as seller_id, s.nome_loja, s.categoria, s.descricao_loja
        FROM users u
@@ -32,22 +37,16 @@ async function handler(req, res) {
     );
 
     if (users.length === 0) {
-      console.log('❌ Usuário não encontrado');
       return sendError(res, 'INVALID_CREDENTIALS', 'Email ou senha incorretos', 401);
     }
 
     const user = users[0];
-    console.log('✅ Usuário encontrado:', user.nome);
 
-    console.log('🔐 Verificando senha...');
     const senhaValida = await bcryptjs.compare(senha, user.senha_hash);
 
     if (!senhaValida) {
-      console.log('❌ Senha incorreta');
       return sendError(res, 'INVALID_CREDENTIALS', 'Email ou senha incorretos', 401);
     }
-
-    console.log('✅ Senha válida');
 
     const secret = process.env.JWT_SECRET;
     if (!secret) throw new Error('JWT_SECRET não configurada');
@@ -55,7 +54,7 @@ async function handler(req, res) {
     const token = jwt.sign(
       { id: user.id, email: user.email, tipo: user.tipo, role: resolveUserRole(user) },
       secret,
-      { expiresIn: '7d' }
+      { expiresIn: '2h' }
     );
 
     let endereco = null;
@@ -69,7 +68,6 @@ async function handler(req, res) {
       }
     }
 
-    console.log('🎉 Login bem-sucedido!');
     return sendSuccess(res, {
       token,
       user: {
@@ -88,9 +86,9 @@ async function handler(req, res) {
       }
     });
   } catch (error) {
-    console.error('💥 ERRO NO LOGIN:', error);
+    logError('auth.login.error', error);
     return sendError(res, 'INTERNAL_ERROR', 'Erro ao fazer login', 500);
   }
 }
 
-export default withCors(handler);
+export default withCors(authLimiter(handler));

@@ -1,3 +1,4 @@
+import '../backend/startup-check.js';
 import { withCors } from '../backend/middleware.js';
 import { sendError, sendSuccess } from '../backend/response.js';
 import { routes } from '../backend/routes.js';

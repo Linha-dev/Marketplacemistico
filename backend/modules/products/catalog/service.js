@@ -83,10 +83,14 @@ export async function listCatalogProducts(query) {
 
 export async function createCatalogProduct(userId, body) {
   const sellerId = await resolveSellerId(userId);
-  const { sanitized, dimensionsValidation } = sanitizeProductPayload(body);
+  const { sanitized, dimensionsValidation, imageValidation } = sanitizeProductPayload(body);
 
   if (!sanitized.nome || !sanitized.categoria || sanitized.preco === null) {
     throw createBusinessError('VALIDATION_ERROR', 'Campos obrigatorios faltando (nome, categoria, preco)');
+  }
+
+  if (!imageValidation.ok) {
+    throw createBusinessError('VALIDATION_ERROR', imageValidation.reason);
   }
 
   if (!dimensionsValidation.ok) {
@@ -129,10 +133,14 @@ export async function updateCatalogProduct(userId, rawId, body) {
   }
 
   const sellerId = await resolveSellerId(userId);
-  const { sanitized, dimensionsValidation } = sanitizeProductPayload(body);
+  const { sanitized, dimensionsValidation, imageValidation } = sanitizeProductPayload(body);
 
   if (!sanitized.nome || !sanitized.categoria || sanitized.preco === null) {
     throw createBusinessError('VALIDATION_ERROR', 'Campos obrigatorios faltando (nome, categoria, preco)');
+  }
+
+  if (!imageValidation.ok) {
+    throw createBusinessError('VALIDATION_ERROR', imageValidation.reason);
   }
 
   if (!dimensionsValidation.ok) {

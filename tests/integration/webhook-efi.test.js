@@ -15,7 +15,7 @@ describe('EFI webhook idempotency', () => {
     jest.clearAllMocks();
     req = {
       method: 'POST',
-      headers: {},
+      headers: { 'x-webhook-secret': 'test-efi-webhook-secret' },
       body: {}
     };
     res = {

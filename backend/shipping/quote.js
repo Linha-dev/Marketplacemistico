@@ -4,6 +4,7 @@ import { sendSuccess, sendError } from '../response.js';
 import { withCors } from '../middleware.js';
 import { requireAuth } from '../auth-middleware.js';
 import { quoteWithMelhorEnvio } from '../services/shipping/melhor-envio-service.js';
+import { logError } from '../observability/logger.js';
 
 function aggregatePackageInfo(products) {
   const totalWeight = products.reduce((sum, p) => sum + Number(p.weight_kg || 0), 0);
@@ -105,7 +106,7 @@ async function handler(req, res) {
       providerPayload: quoteResult.payload
     });
   } catch (error) {
-    console.error('Erro ao cotar frete:', error);
+    logError('shipping.quote.error', error);
     return sendError(res, 'INTERNAL_ERROR', 'Erro ao cotar frete no Melhor Envio', 500);
   }
 }

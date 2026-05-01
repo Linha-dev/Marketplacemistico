@@ -14,6 +14,14 @@ import {
 import { sendSuccess, sendError } from '../response.js';
 import { withCors } from '../middleware.js';
 import { resolveUserRole } from '../rbac.js';
+import { logError } from '../observability/logger.js';
+import { createRateLimit } from '../rate-limit.js';
+
+const registerLimiter = createRateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: 'Muitas tentativas de cadastro. Aguarde alguns minutos.'
+});
 
 async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -131,7 +139,7 @@ async function handler(req, res) {
     const token = jwt.sign(
       { id: user.id, email: user.email, tipo: user.tipo, role: resolveUserRole(user) },
       secret,
-      { expiresIn: '7d' }
+      { expiresIn: '2h' }
     );
 
     return sendSuccess(
@@ -156,9 +164,9 @@ async function handler(req, res) {
       201
     );
   } catch (error) {
-    console.error('Erro no registro:', error);
+    logError('auth.register.error', error);
     return sendError(res, 'INTERNAL_ERROR', 'Erro ao criar usuario', 500);
   }
 }
 
-export default withCors(handler);
+export default withCors(registerLimiter(handler));
