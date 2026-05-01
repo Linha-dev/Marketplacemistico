@@ -319,6 +319,26 @@ export function sanitizeUrl(url) {
   return normalized.slice(0, 2000);
 }
 
+/**
+ * Validate image URL (must be HTTPS and a valid URL format)
+ * @param {string} url - The image URL to validate
+ * @returns {{ok: boolean, value: string, reason?: string}}
+ */
+export function validateImageUrl(url) {
+  if (!url) return { ok: true, value: '' };
+  const trimmed = String(url).trim();
+  if (!trimmed) return { ok: true, value: '' };
+  if (!trimmed.startsWith('https://')) {
+    return { ok: false, reason: 'URL da imagem deve usar HTTPS' };
+  }
+  try {
+    new URL(trimmed);
+  } catch {
+    return { ok: false, reason: 'URL da imagem inválida' };
+  }
+  return { ok: true, value: trimmed.slice(0, 2000) };
+}
+
 // --- CPF/CNPJ Validation ---
 
 /**

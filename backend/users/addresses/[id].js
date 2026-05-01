@@ -3,6 +3,7 @@ import { sanitizeString, sanitizeInteger } from '../../sanitize.js';
 import { sendSuccess, sendError } from '../../response.js';
 import { withCors } from '../../middleware.js';
 import { requireAuth } from '../../auth-middleware.js';
+import { logError } from '../../observability/logger.js';
 
 async function handler(req, res) {
   const { id } = req.query;
@@ -49,7 +50,7 @@ async function handler(req, res) {
 
       return sendSuccess(res, { address: result[0] });
     } catch (error) {
-      console.error('Erro ao atualizar endereço:', error);
+      logError('addresses.put.error', error);
       return sendError(res, 'INTERNAL_ERROR', 'Erro ao atualizar endereço', 500);
     }
   }
@@ -67,7 +68,7 @@ async function handler(req, res) {
 
       return sendSuccess(res, { message: 'Endereço removido' });
     } catch (error) {
-      console.error('Erro ao remover endereço:', error);
+      logError('addresses.delete.error', error);
       return sendError(res, 'INTERNAL_ERROR', 'Erro ao remover endereço', 500);
     }
   }

@@ -2,9 +2,9 @@ import {
   sanitizeString,
   sanitizeNumber,
   sanitizeInteger,
-  sanitizeUrl,
   sanitizeBoolean,
-  validateDimensions
+  validateDimensions,
+  validateImageUrl
 } from '../../../sanitize.js';
 
 export function sanitizePagination(query = {}, defaultLimit = 20) {
@@ -18,21 +18,24 @@ export function sanitizePagination(query = {}, defaultLimit = 20) {
 }
 
 export function sanitizeCatalogFilters(query = {}) {
+  const search = sanitizeString(query.search);
   return {
     categoria: sanitizeString(query.categoria),
     sellerId: sanitizeInteger(query.seller_id),
-    search: sanitizeString(query.search)
+    search: search ? search.slice(0, 200) : search
   };
 }
 
 export function sanitizeProductPayload(payload = {}) {
+  const imageValidation = validateImageUrl(payload.imagemUrl);
+
   const sanitized = {
     nome: sanitizeString(payload.nome),
     categoria: sanitizeString(payload.categoria),
     descricao: sanitizeString(payload.descricao),
     preco: sanitizeNumber(payload.preco),
     estoque: sanitizeInteger(payload.estoque),
-    imagemUrl: sanitizeUrl(payload.imagemUrl),
+    imagemUrl: imageValidation.ok ? imageValidation.value : null,
     publicado: sanitizeBoolean(payload.publicado)
   };
 
@@ -44,7 +47,7 @@ export function sanitizeProductPayload(payload = {}) {
     insuranceValue: payload.insuranceValue ?? payload.insurance_value
   }, sanitized.publicado);
 
-  return { sanitized, dimensionsValidation };
+  return { sanitized, dimensionsValidation, imageValidation };
 }
 
 export function sanitizeProductId(id) {

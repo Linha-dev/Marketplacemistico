@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { sendSuccess, sendError } from '../response.js';
 import { withCors } from '../middleware.js';
 import { resolveUserRole } from '../rbac.js';
+import { logError } from '../observability/logger.js';
 
 async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -34,12 +35,12 @@ async function handler(req, res) {
         role: resolveUserRole(decoded)
       },
       secret,
-      { expiresIn: '7d' }
+      { expiresIn: '2h' }
     );
 
     return sendSuccess(res, { token: newToken });
   } catch (error) {
-    console.error('Erro ao renovar token:', error);
+    logError('auth.refresh.error', error);
     return sendError(res, 'INVALID_TOKEN', 'Token inválido', 401);
   }
 }

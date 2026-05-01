@@ -3,6 +3,7 @@ import { sanitizeString, sanitizeInteger as _sanitizeInteger } from '../../sanit
 import { sendSuccess, sendError } from '../../response.js';
 import { withCors } from '../../middleware.js';
 import { requireAuth } from '../../auth-middleware.js';
+import { logError } from '../../observability/logger.js';
 
 async function handler(req, res) {
   if (req.method === 'GET') {
@@ -13,7 +14,7 @@ async function handler(req, res) {
       );
       return sendSuccess(res, { addresses });
     } catch (error) {
-      console.error('Erro ao buscar endereços:', error);
+      logError('addresses.get.error', error);
       return sendError(res, 'INTERNAL_ERROR', 'Erro ao buscar endereços', 500);
     }
   }
@@ -51,7 +52,7 @@ async function handler(req, res) {
 
       return sendSuccess(res, { address: result[0] }, 201);
     } catch (error) {
-      console.error('Erro ao adicionar endereço:', error);
+      logError('addresses.post.error', error);
       return sendError(res, 'INTERNAL_ERROR', 'Erro ao adicionar endereço', 500);
     }
   }

@@ -5,6 +5,7 @@ import { sendSuccess, sendError } from '../response.js';
 import { withCors } from '../middleware.js';
 import { requireAuth } from '../auth-middleware.js';
 import { resolveUserRole } from '../rbac.js';
+import { logError } from '../observability/logger.js';
 
 async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -102,7 +103,7 @@ async function handler(req, res) {
       user: updatedUser
     });
   } catch (error) {
-    console.error('Erro ao fazer upgrade para vendedor:', error);
+    logError('users.upgrade_to_vendor.error', error);
     return sendError(res, 'INTERNAL_ERROR', 'Erro ao fazer upgrade para vendedor. Tente novamente.', 500);
   }
 }

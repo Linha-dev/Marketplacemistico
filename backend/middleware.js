@@ -16,8 +16,14 @@ export function withCors(handler) {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' https: data:");
+    res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
 
-    const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
+    const allowedOrigin = process.env.ALLOWED_ORIGIN;
+    if (!allowedOrigin) {
+      throw new Error('ALLOWED_ORIGIN não configurada');
+    }
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Correlation-Id');
