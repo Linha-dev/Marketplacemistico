@@ -1,7 +1,9 @@
 const required = [
   'DATABASE_URL',
   'JWT_SECRET',
-  'ALLOWED_ORIGIN'
+  'ALLOWED_ORIGIN',
+  'EFI_WEBHOOK_SECRET',
+  'MELHOR_ENVIO_WEBHOOK_SECRET'
 ];
 
 for (const key of required) {
