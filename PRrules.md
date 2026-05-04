@@ -20,11 +20,11 @@ Definir um fluxo unico para submissao de PR, com seguranca para PROD e previsibi
 
 Exemplos:
 - `codex/c02-s26-motor-custo-total`
-- `VictordgDev/c02-s27-segregacao-quote`
+- `VictorDG00/c02-s27-segregacao-quote`
 
 ### Hotfix
 - `autor/hotfix-YYYYMMDD-descricao`
-- Exemplo: `VictordgDev/hotfix-20260318-falha-webhook`
+- Exemplo: `VictorDG00/hotfix-20260318-falha-webhook`
 
 ## Regras obrigatorias
 - Nao fazer push direto em `main`.
