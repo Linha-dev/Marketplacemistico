@@ -3,7 +3,7 @@ import { addToCart as cartAdd, removeFromCart as cartRemove, calculateSubtotal, 
 // ==================== CONFIGURAÇÃO INICIAL ====================
 let currentUser = null;
 let authToken = null;
-const API_BASE = '/api';
+const API_BASE = 'https://marketplace-mistico.fly.dev/api';
 let activeMode = null; // 'cliente' or 'vendedor'
 
 // Expose functions to window for onclick handlers

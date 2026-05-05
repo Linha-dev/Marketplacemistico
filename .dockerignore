@@ -1,0 +1,11 @@
+node_modules
+.env
+.env.*
+.git
+.github
+tests
+*.test.js
+*.md
+.vercel
+.vercelignore
+scripts/load-test.js

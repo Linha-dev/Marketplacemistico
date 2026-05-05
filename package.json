@@ -4,9 +4,9 @@
   "type": "module",
   "main": "backend/db.js",
   "scripts": {
-    "build": "echo 'No build step required'",
+    "start": "node server.js",
+    "dev": "node --watch server.js",
     "migrate": "node scripts/migrate.js up",
-    "dev": "vercel dev",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit",
     "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/integration",
@@ -19,10 +19,10 @@
     "ops:load": "node scripts/load-test.js"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.9.0",
     "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "ws": "^8.19.0",
+    "pg": "^8.13.3",
     "xss": "^1.0.15"
   },
   "devDependencies": {
@@ -31,7 +31,6 @@
     "eslint-plugin-security": "^4.0.0",
     "globals": "^17.4.0",
     "jest": "^30.2.0",
-    "jest-environment-jsdom": "^30.2.0",
-    "vercel": "^52.2.0"
+    "jest-environment-jsdom": "^30.2.0"
   }
 }

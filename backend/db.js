@@ -1,38 +1,19 @@
-﻿import { neon, Pool, neonConfig } from '@neondatabase/serverless';
-import ws from 'ws';
+﻿import pg from 'pg';
 
-let sql;
+const { Pool } = pg;
 let pool;
 
-neonConfig.webSocketConstructor = ws;
-
-function getDatabaseUrl() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL nao configurada nas variaveis de ambiente');
-  }
-  return databaseUrl;
-}
-
-export function getDb() {
-  if (!sql) {
-    sql = neon(getDatabaseUrl());
-  }
-  return sql;
-}
-
-export function getPool() {
-  if (!pool) {
-    pool = new Pool({ connectionString: getDatabaseUrl() });
-  }
+function getPool() {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL nao configurada nas variaveis de ambiente');
+  if (!pool) pool = new Pool({ connectionString: url });
   return pool;
 }
 
 export async function query(text, params = []) {
-  const sql = getDb();
   try {
-    const result = await sql(text, params);
-    return result;
+    const result = await getPool().query(text, params);
+    return result.rows;
   } catch (error) {
     console.error('Database error:', error.message);
     throw error;
@@ -41,7 +22,6 @@ export async function query(text, params = []) {
 
 export async function withTransaction(callback) {
   const client = await getPool().connect();
-
   try {
     await client.query('BEGIN');
     const result = await callback(client);
