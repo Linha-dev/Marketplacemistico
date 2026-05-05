@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": "public",
   "buildCommand": "",
   "functions": {
     "api/index.js": {
@@ -10,7 +11,6 @@
   "rewrites": [
     { "source": "/api", "destination": "/api/index.js" },
     { "source": "/api/(.*)", "destination": "/api/index.js?path=$1" },
-    { "source": "/", "destination": "/public/index.html" },
-    { "source": "/(.*)", "destination": "/public/$1" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
