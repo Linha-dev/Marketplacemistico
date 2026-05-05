@@ -17,3 +17,9 @@ yarn-error.log*
 dist/
 build/
 .env*.local
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
