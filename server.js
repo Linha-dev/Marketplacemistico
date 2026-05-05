@@ -20,7 +20,7 @@ try {
 app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     if (!handler) {
-      res.status(503).json({ error: 'API unavailable - server misconfigured' });
+      res.status(503).json({ error: 'API unavailable - required environment variables may be missing' });
       return;
     }
     return handler(req, res).catch(next);
@@ -32,7 +32,11 @@ app.use(express.static(join(__dirname, 'public')));
 
 // SPA fallback: serve index.html for any route not matched by a static file
 app.get('*', (_req, res) => {
-  res.sendFile(join(__dirname, 'public', 'index.html'));
+  res.sendFile(join(__dirname, 'public', 'index.html'), (err) => {
+    if (err) {
+      res.status(500).end();
+    }
+  });
 });
 
 app.listen(PORT, () => {
