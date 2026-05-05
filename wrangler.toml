@@ -1,2 +1,5 @@
 name = "marketplace-mistico"
-pages_build_output_dir = "public"
+compatibility_date = "2026-05-05"
+
+[assets]
+directory = "./public"
