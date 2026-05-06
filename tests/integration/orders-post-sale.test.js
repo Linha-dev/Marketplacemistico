@@ -1,4 +1,4 @@
-﻿import { jest } from '@jest/globals';
+import { jest } from '@jest/globals';
 
 jest.unstable_mockModule('../../backend/db.js', () => ({
   withTransaction: jest.fn(),

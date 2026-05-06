@@ -1,5 +1,6 @@
 export default {
   testEnvironment: 'node',
   transform: {},
-  setupFiles: ['./tests/setup.js']
+  setupFiles: ['./tests/setup.js'],
+  forceExit: true
 };
