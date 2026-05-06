@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { getDb } from '../backend/db.js';
+import { query as db } from '../backend/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -250,7 +250,6 @@ async function main() {
   }
 
   await loadEnvFile();
-  const db = getDb();
   await ensureMigrationTable(db);
 
   const migrations = await loadMigrations();

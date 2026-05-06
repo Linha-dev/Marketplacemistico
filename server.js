@@ -1,6 +1,7 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { runStatusCheck } from './backend/observability/status-checker.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -39,6 +40,11 @@ app.get('*', (_req, res) => {
   });
 });
 
+const THIRTY_MINUTES = 30 * 60 * 1000;
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
+  // run once on startup then every 30 min
+  setTimeout(runStatusCheck, 10_000);
+  setInterval(runStatusCheck, THIRTY_MINUTES);
 });
