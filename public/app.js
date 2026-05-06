@@ -724,11 +724,11 @@ function showMessage(containerId, message, isError = false) {
 
 // ==================== AUTENTICAÇÃO ====================
 function handleGoogleRegister() {
-    window.location.href = '/api/auth/google';
+    window.location.href = `${API_BASE}/auth/google`;
 }
 
 function handleGoogleLogin() {
-    window.location.href = '/api/auth/google';
+    window.location.href = `${API_BASE}/auth/google`;
 }
 
 async function register(event) {
@@ -849,7 +849,7 @@ async function login(event) {
     try {
         debug.log('📡 Fazendo requisição para /api/auth/login...');
         
-        const url = '/api/auth/login';
+        const url = `${API_BASE}/auth/login`;
         const options = {
             method: 'POST',
             headers: {
