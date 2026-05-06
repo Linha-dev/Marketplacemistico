@@ -15,6 +15,11 @@ primary_region = "gru"
   min_machines_running = 1
   processes = ["app"]
 
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  count = 1
+
   [[http_service.checks]]
     grace_period = "10s"
     interval = "30s"
