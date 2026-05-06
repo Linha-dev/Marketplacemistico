@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status — Quintal Místico</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:  #1a7f37;
+      --green-bg: #dafbe1;
+      --green-border: #aceebb;
+      --yellow: #9a6700;
+      --yellow-bg: #fff8c5;
+      --yellow-border: #f0d042;
+      --red:    #cf222e;
+      --red-bg: #ffebe9;
+      --red-border: #ffcecb;
+      --gray:   #57606a;
+      --gray-bg: #f6f8fa;
+      --gray-border: #d0d7de;
+      --text:   #1f2328;
+      --text-muted: #57606a;
+      --border: #d0d7de;
+      --bg: #ffffff;
+      --surface: #f6f8fa;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Header ── */
+    .header {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      background: var(--bg);
+    }
+
+    .header-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon { font-size: 1.2rem; }
+
+    .header-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Hero banner ── */
+    .hero {
+      padding: 40px 24px 32px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-inner { max-width: 800px; margin: 0 auto; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      border: 1px solid;
+      margin-bottom: 12px;
+    }
+
+    .status-badge.ok     { background: var(--green-bg);  color: var(--green);  border-color: var(--green-border); }
+    .status-badge.warn   { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow-border); }
+    .status-badge.down   { background: var(--red-bg);    color: var(--red);    border-color: var(--red-border); }
+    .status-badge.check  { background: var(--gray-bg);   color: var(--gray);   border-color: var(--gray-border); }
+
+    .badge-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    .badge-dot.pulse { animation: pulse 1.4s ease-in-out infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .hero-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Main layout ── */
+    .main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    /* ── Section ── */
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* ── Component list ── */
+    .component-list {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+
+    .component-group-header {
+      background: var(--surface);
+      padding: 10px 16px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .component {
+      display: flex;
+      align-items: center;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+      background: var(--bg);
+    }
+
+    .component:last-child { border-bottom: none; }
+
+    .component-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .component-dot.ok    { background: #1a7f37; }
+    .component-dot.warn  { background: #9a6700; }
+    .component-dot.error { background: #cf222e; }
+    .component-dot.check { background: #adb5bd; animation: pulse 1.4s infinite; }
+
+    .component-name {
+      flex: 1;
+      font-size: 0.9rem;
+    }
+
+    .component-detail {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .component-status {
+      font-size: 0.8rem;
+      font-weight: 500;
+      min-width: 120px;
+      text-align: right;
+    }
+
+    .component-status.ok    { color: var(--green); }
+    .component-status.warn  { color: var(--yellow); }
+    .component-status.error { color: var(--red); }
+    .component-status.check { color: var(--gray); }
+
+    .latency-pill {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2px 8px;
+      min-width: 54px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── History bar ── */
+    .history-section { margin-bottom: 32px; }
+
+    .history-wrap {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      background: var(--bg);
+    }
+
+    .history-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .history-bars {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      height: 32px;
+    }
+
+    .history-bar {
+      flex: 1;
+      border-radius: 2px;
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+      height: 100%;
+      cursor: default;
+    }
+
+    .history-bar.empty { background: var(--surface); border-color: var(--border); }
+
+    /* ── Footer ── */
+    .page-footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 24px;
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-time {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .refresh-btn {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .refresh-btn:hover { background: var(--surface); color: var(--text); }
+    .refresh-btn:disabled { opacity: 0.5; cursor: default; }
+
+    /* ── Uptime summary ── */
+    .uptime-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .uptime-row:last-child { border-bottom: none; }
+    .uptime-pct { font-weight: 600; color: var(--green); }
+
+    @media (max-width: 540px) {
+      .component-detail { display: none; }
+      .latency-pill { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a class="logo" href="/">
+      <span class="logo-icon">🌿</span>
+      Quintal Místico
+    </a>
+    <span class="header-sub">Página de Status</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="status-badge check" id="hero-badge">
+      <span class="badge-dot pulse" id="hero-dot"></span>
+      <span id="hero-text">Verificando sistemas...</span>
+    </div>
+    <p class="hero-sub" id="hero-sub">Aguarde enquanto verificamos todos os serviços.</p>
+  </div>
+</section>
+
+<main class="main">
+
+  <p class="section-title">Componentes</p>
+
+  <div class="component-list">
+    <div class="component-group-header">
+      <span>Frontend</span>
+      <span class="component-status check" id="group-status-frontend">—</span>
+    </div>
+
+    <div class="component" id="comp-cdn">
+      <div class="component-dot check" id="dot-cdn"></div>
+      <span class="component-name">CDN &amp; Entrega de Conteúdo</span>
+      <span class="component-detail">Cloudflare</span>
+      <span class="latency-pill" id="lat-cdn">—</span>
+      <span class="component-status check" id="status-cdn">Verificando</span>
+    </div>
+
+    <div class="component-group-header" style="border-top:1px solid var(--border)">
+      <span>API &amp; Backend</span>
+      <span class="component-status check" id="group-status-api">—</span>
+    </div>
+
+    <div class="component" id="comp-api">
+      <div class="component-dot check" id="dot-api"></div>
+      <span class="component-name">API</span>
+      <span class="component-detail">Fly.io — marketplace-mistico</span>
+      <span class="latency-pill" id="lat-api">—</span>
+      <span class="component-status check" id="status-api">Verificando</span>
+    </div>
+
+    <div class="component" id="comp-auth">
+      <div class="component-dot check" id="dot-auth"></div>
+      <span class="component-name">Autenticação</span>
+      <span class="component-detail">JWT / Google OAuth</span>
+      <span class="latency-pill" id="lat-auth">—</span>
+      <span class="component-status check" id="status-auth">Verificando</span>
+    </div>
+
+    <div class="component-group-header" style="border-top:1px solid var(--border)">
+      <span>Banco de Dados</span>
+      <span class="component-status check" id="group-status-db">—</span>
+    </div>
+
+    <div class="component" id="comp-db">
+      <div class="component-dot check" id="dot-db"></div>
+      <span class="component-name">PostgreSQL</span>
+      <span class="component-detail">Neon — sa-east-1</span>
+      <span class="latency-pill" id="lat-db">—</span>
+      <span class="component-status check" id="status-db">Verificando</span>
+    </div>
+  </div>
+
+  <div class="history-section">
+    <p class="section-title">Disponibilidade — últimas 24h</p>
+    <div class="history-wrap">
+      <div class="history-label">
+        <span>24 horas atrás</span>
+        <span>Agora</span>
+      </div>
+      <div class="history-bars" id="history-bars"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer style="border-top:1px solid var(--border)">
+  <div class="page-footer">
+    <span class="footer-time" id="footer-time">—</span>
+    <button class="refresh-btn" id="refresh-btn" onclick="runChecks()">↻ Atualizar</button>
+  </div>
+</footer>
+
+<script>
+  const API_HEALTH = 'https://marketplace-mistico.fly.dev/api/health';
+
+  const STATUS_LABEL = {
+    ok:    'Operacional',
+    warn:  'Degradado',
+    error: 'Indisponível',
+    check: 'Verificando',
+  };
+
+  function setComponent(id, state, latencyMs) {
+    document.getElementById('dot-' + id).className = 'component-dot ' + state;
+    const s = document.getElementById('status-' + id);
+    s.textContent = STATUS_LABEL[state] || '—';
+    s.className = 'component-status ' + state;
+    const l = document.getElementById('lat-' + id);
+    l.textContent = latencyMs != null ? latencyMs + ' ms' : '—';
+  }
+
+  function setGroup(id, state) {
+    const el = document.getElementById('group-status-' + id);
+    el.textContent = STATUS_LABEL[state] || '—';
+    el.className = 'component-status ' + state;
+  }
+
+  function setHero(state) {
+    const badge = document.getElementById('hero-badge');
+    const dot   = document.getElementById('hero-dot');
+    const text  = document.getElementById('hero-text');
+    const sub   = document.getElementById('hero-sub');
+
+    const labels = {
+      ok:    'Todos os sistemas operacionais',
+      warn:  'Desempenho degradado',
+      down:  'Falha em um ou mais serviços',
+      check: 'Verificando sistemas...',
+    };
+
+    const subs = {
+      ok:    'Nenhum incidente ativo no momento.',
+      warn:  'Alguns serviços podem estar lentos ou instáveis.',
+      down:  'Nossa equipe foi notificada e está investigando.',
+      check: 'Aguarde enquanto verificamos todos os serviços.',
+    };
+
+    badge.className = 'status-badge ' + (state === 'error' ? 'down' : state);
+    dot.className   = 'badge-dot' + (state === 'check' ? ' pulse' : '');
+    text.textContent = labels[state] || state;
+    sub.textContent  = subs[state]   || '';
+  }
+
+  function buildHistoryBars() {
+    const container = document.getElementById('history-bars');
+    container.innerHTML = '';
+    const stored = JSON.parse(sessionStorage.getItem('statusHistory') || '[]');
+    const total = 48;
+    for (let i = 0; i < total; i++) {
+      const bar = document.createElement('div');
+      const entry = stored[i];
+      bar.className = 'history-bar' + (entry ? '' : ' empty');
+      if (entry === 'ok')    bar.style.background = '#dafbe1';
+      if (entry === 'warn')  bar.style.background = '#fff8c5';
+      if (entry === 'error') bar.style.background = '#ffebe9';
+      bar.title = entry ? (new Date(Date.now() - (total - i) * 30 * 60 * 1000)).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + ' — ' + (STATUS_LABEL[entry] || entry) : 'Sem dados';
+      container.appendChild(bar);
+    }
+  }
+
+  function saveHistory(overallState) {
+    const stored = JSON.parse(sessionStorage.getItem('statusHistory') || '[]');
+    stored.push(overallState);
+    if (stored.length > 48) stored.shift();
+    sessionStorage.setItem('statusHistory', JSON.stringify(stored));
+  }
+
+  async function runChecks() {
+    const btn = document.getElementById('refresh-btn');
+    btn.disabled = true;
+    setHero('check');
+    ['cdn', 'api', 'auth', 'db'].forEach(id => setComponent(id, 'check', null));
+    ['frontend', 'api', 'db'].forEach(id => setGroup(id, 'check'));
+
+    // ── Cloudflare (frontend) ──
+    let cdnState = 'error', cdnLat = null;
+    try {
+      const t0 = performance.now();
+      await fetch('/favicon.svg', { cache: 'no-store' });
+      cdnLat  = Math.round(performance.now() - t0);
+      cdnState = cdnLat < 2000 ? 'ok' : 'warn';
+    } catch { /* stays error */ }
+    setComponent('cdn', cdnState, cdnLat);
+    setGroup('frontend', cdnState);
+
+    // ── Fly.io API + Auth + Neon ──
+    let apiState = 'error', apiLat = null;
+    let authState = 'error';
+    let dbState   = 'error', dbLat = null;
+
+    try {
+      const t0  = performance.now();
+      const res = await fetch(API_HEALTH, { cache: 'no-store' });
+      apiLat = Math.round(performance.now() - t0);
+      const body = await res.json();
+
+      if (res.ok && body?.success) {
+        apiState  = apiLat < 3000 ? 'ok' : 'warn';
+        authState = body?.data?.status === 'ok' ? 'ok' : 'warn';
+        dbState   = body?.data?.database === 'connected' ? 'ok' : 'error';
+        dbLat     = apiLat;
+      } else {
+        apiState  = 'warn';
+        authState = 'warn';
+        dbState   = 'warn';
+      }
+    } catch { /* stays error */ }
+
+    setComponent('api',  apiState,  apiLat);
+    setComponent('auth', authState, null);
+    setComponent('db',   dbState,   dbLat);
+    setGroup('api', worstOf(apiState, authState));
+    setGroup('db',  dbState);
+
+    // ── Overall ──
+    const all = [cdnState, apiState, authState, dbState];
+    const overall = all.every(s => s === 'ok')       ? 'ok'
+                  : all.some(s  => s === 'error')     ? 'error'
+                  :                                     'warn';
+    setHero(overall === 'error' ? 'down' : overall);
+    saveHistory(overall);
+    buildHistoryBars();
+
+    document.getElementById('footer-time').textContent =
+      'Última atualização: ' + new Date().toLocaleString('pt-BR');
+
+    btn.disabled = false;
+  }
+
+  function worstOf(...states) {
+    if (states.includes('error')) return 'error';
+    if (states.includes('warn'))  return 'warn';
+    return 'ok';
+  }
+
+  buildHistoryBars();
+  runChecks();
+  setInterval(runChecks, 60000);
+</script>
+</body>
+</html>
