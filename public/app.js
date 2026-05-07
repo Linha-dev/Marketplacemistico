@@ -10,6 +10,7 @@ let activeMode = null; // 'cliente' or 'vendedor'
 window.navigateHome = navigateHome;
 window.showPage = showPage;
 window.toggleUserMode = toggleUserMode;
+window.switchToMode = switchToMode;
 window.showCart = showCart;
 window.logout = logout;
 window.toggleMobileSidebar = toggleMobileSidebar;
@@ -166,76 +167,57 @@ async function loadSellerProducts() {
 
 // ==================== NAVEGAÇÃO ====================
 function toggleUserMode() {
-    debug.log('🔄 toggleUserMode() chamado');
-    debug.log('👤 currentUser:', currentUser);
-    debug.log('📍 activeMode atual:', activeMode);
-    
+    const newMode = activeMode === 'cliente' ? 'vendedor' : 'cliente';
+    switchToMode(newMode);
+}
+
+function switchToMode(mode) {
     if (!currentUser) {
         alert('Você precisa estar logado para alternar entre modos');
         return;
     }
-    
-    // Only allow toggle if user is a vendor (vendors can act as both cliente and vendedor)
     if (currentUser.tipo !== 'vendedor') {
         alert('Apenas vendedores podem alternar entre os modos Cliente e Vendedor');
         return;
     }
-    
-    // Toggle between cliente and vendedor mode
-    if (activeMode === 'cliente') {
-        activeMode = 'vendedor';
-    } else {
-        activeMode = 'cliente';
-    }
-    
-    debug.log('📍 Novo activeMode:', activeMode);
-    
-    // Save to localStorage
+    if (activeMode === mode) return;
+
+    activeMode = mode;
     localStorage.setItem('activeMode', activeMode);
-    
-    // Update the toggle button
     updateModeToggleButton();
-    
-    // Navigate to appropriate dashboard
     navigateHome();
 }
 
 function updateModeToggleButton() {
     const modeToggleContainer = document.getElementById('mode-toggle-container');
     const mobileModeToggleContainer = document.getElementById('mobile-mode-toggle-container');
-    const modeIcon = document.getElementById('mode-icon');
-    const modeText = document.getElementById('mode-text');
-    const mobileModeIcon = document.getElementById('mobile-mode-icon');
-    const mobileModeText = document.getElementById('mobile-mode-text');
-    
-    // Show/hide toggle button based on user type
+
     if (currentUser && currentUser.tipo === 'vendedor') {
-        if (modeToggleContainer) {
-            modeToggleContainer.classList.remove('hidden');
-        }
-        if (mobileModeToggleContainer) {
-            mobileModeToggleContainer.classList.remove('hidden');
-        }
-        
-        // Update button text and icon based on active mode
-        if (activeMode === 'cliente') {
-            if (modeIcon) modeIcon.textContent = '🛒';
-            if (modeText) modeText.textContent = 'Cliente';
-            if (mobileModeIcon) mobileModeIcon.textContent = '🛒';
-            if (mobileModeText) mobileModeText.textContent = 'Cliente';
-        } else {
-            if (modeIcon) modeIcon.textContent = '🏪';
-            if (modeText) modeText.textContent = 'Vendedor';
-            if (mobileModeIcon) mobileModeIcon.textContent = '🏪';
-            if (mobileModeText) mobileModeText.textContent = 'Vendedor';
-        }
+        if (modeToggleContainer) modeToggleContainer.classList.remove('hidden');
+        if (mobileModeToggleContainer) mobileModeToggleContainer.classList.remove('hidden');
+
+        // Update active state on desktop buttons
+        ['mode-btn-cliente', 'mode-btn-vendedor'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                const mode = id.replace('mode-btn-', '');
+                const isActive = mode === activeMode;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-pressed', String(isActive));
+            }
+        });
+
+        // Update active state on mobile buttons
+        ['mobile-mode-btn-cliente', 'mobile-mode-btn-vendedor'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                const mode = id.replace('mobile-mode-btn-', '');
+                btn.classList.toggle('active', mode === activeMode);
+            }
+        });
     } else {
-        if (modeToggleContainer) {
-            modeToggleContainer.classList.add('hidden');
-        }
-        if (mobileModeToggleContainer) {
-            mobileModeToggleContainer.classList.add('hidden');
-        }
+        if (modeToggleContainer) modeToggleContainer.classList.add('hidden');
+        if (mobileModeToggleContainer) mobileModeToggleContainer.classList.add('hidden');
     }
 }
 

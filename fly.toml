@@ -6,6 +6,7 @@ primary_region = "gru"
 [env]
   PORT = "8080"
   NODE_ENV = "production"
+  ALLOWED_ORIGIN = "https://quintalmistico.com.br"
 
 [http_service]
   internal_port = 8080

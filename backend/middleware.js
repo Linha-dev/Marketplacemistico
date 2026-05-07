@@ -24,9 +24,14 @@ export function withCors(handler) {
     if (!allowedOrigin) {
       throw new Error('ALLOWED_ORIGIN não configurada');
     }
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Correlation-Id');
+    const allowedOrigins = allowedOrigin.split(',').map(o => o.trim());
+    const requestOrigin = req.headers.origin;
+    if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+      res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+      res.setHeader('Vary', 'Origin');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Correlation-Id');
+    }
 
     if (req.method === 'OPTIONS') {
       return res.status(200).end();
