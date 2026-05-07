@@ -12,7 +12,7 @@ app.use(express.urlencoded({ extended: false }));
 
 let handler = null;
 try {
-  const apiModule = await import('./api/index.js');
+  const apiModule = await import('./backend/api-handler.js');
   handler = apiModule.default;
 } catch (err) {
   console.error('API handler failed to load (missing env vars?):', err.message);

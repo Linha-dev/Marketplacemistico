@@ -86,10 +86,10 @@ Configurar em `Settings > Branches`:
   - `integration-tests`
 - Do not allow bypassing the above settings.
 
-## Vercel
-- `main` = Production Branch.
-- `develop` e branches de sprint/hotfix = Preview.
-- Variaveis separadas por `Production` e `Preview`.
+## Deploy
+- **Backend (Fly.io):** deploy automatico via CI em merge para `main`.
+- **Frontend (Cloudflare Pages):** deploy por push; `main` = Production, `develop` = Preview.
+- Variaveis/secrets separados por ambiente no Fly.io e Cloudflare.
 
 ## Script utilitario
 Para criar branch padronizada, usar:

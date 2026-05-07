@@ -6,10 +6,10 @@ Consolidar resultado de smoke test, carga basica e validacoes finais antes do go
 ## Comandos utilizados
 ```bash
 # Smoke em homologacao
-SMOKE_BASE_URL=https://seu-host-hml.vercel.app npm run ops:smoke
+SMOKE_BASE_URL=https://seu-host-hml.fly.dev npm run ops:smoke
 
 # Carga basica em homologacao
-LOAD_BASE_URL=https://seu-host-hml.vercel.app \
+LOAD_BASE_URL=https://seu-host-hml.fly.dev \
 LOAD_ENDPOINTS=/api/health,/api/products,/api/observability/metrics \
 LOAD_CONCURRENCY=5 \
 LOAD_REQUESTS_PER_WORKER=20 \

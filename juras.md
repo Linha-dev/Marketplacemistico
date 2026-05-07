@@ -9,7 +9,7 @@
 
 ### 1. Console.log expondo internals do backend
 
-O backend tem ~29 ocorrências de `console.log`/`console.error` que podem vazar queries SQL, emails de usuários, stack traces e detalhes de configuração nos logs da Vercel (visíveis no dashboard e potencialmente em integrações externas).
+O backend tem ~29 ocorrências de `console.log`/`console.error` que podem vazar queries SQL, emails de usuários, stack traces e detalhes de configuração nos logs do servidor (visíveis no dashboard e potencialmente em integrações externas).
 
 | Arquivo | Problema |
 |---|---|
@@ -36,7 +36,7 @@ O backend tem ~29 ocorrências de `console.log`/`console.error` que podem vazar 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
 ```
 
-Se a variável `ALLOWED_ORIGIN` não estiver configurada na Vercel, o servidor aceita requisições de qualquer origem, incluindo sites maliciosos que queiram chamar a API em nome do usuário logado.
+Se a variável `ALLOWED_ORIGIN` não estiver configurada no Fly.io, o servidor aceita requisições de qualquer origem, incluindo sites maliciosos que queiram chamar a API em nome do usuário logado.
 
 **O que fazer:**
 ```js
@@ -45,7 +45,7 @@ const allowedOrigin = process.env.ALLOWED_ORIGIN;
 if (!allowedOrigin) throw new Error('ALLOWED_ORIGIN não configurada');
 ```
 
-Garantir que `ALLOWED_ORIGIN=https://quintalmistico.com.br` está nas variáveis de produção na Vercel.
+Garantir que `ALLOWED_ORIGIN=https://quintalmistico.com.br` está nos secrets de produção no Fly.io.
 
 ---
 
@@ -79,7 +79,7 @@ const authLimiter = rateLimit({
 });
 ```
 
-> **Atenção Vercel:** rate limit em memória não funciona entre múltiplas instâncias serverless. Para MVP, o limite por IP já ajuda bastante. Para produção real, usar Vercel KV como store compartilhado.
+> **Atenção:** rate limit em memória não é compartilhado entre múltiplas instâncias. Para MVP, o limite por IP já ajuda bastante. Para produção real, usar Redis como store compartilhado.
 
 ---
 
@@ -145,7 +145,7 @@ if (receivedSecret !== webhookSecret) {
 }
 ```
 
-Mesmo fix para Melhor Envio. Garantir que as secrets estão configuradas na Vercel antes do deploy.
+Mesmo fix para Melhor Envio. Garantir que as secrets estão configuradas no Fly.io antes do deploy.
 
 ---
 
@@ -349,9 +349,9 @@ Adicionar validação de timestamp no webhook: se o evento tem mais de 5 minutos
 
 Implementar refresh tokens de uso único armazenados no banco (`refresh_tokens` table), com rotação automática a cada uso. Isso permite revogar sessões individuais.
 
-### 19. Rate limiting distribuído com Vercel KV
+### 19. Rate limiting distribuído com Redis
 
-O rate limiting em memória não funciona quando a Vercel sobe múltiplas instâncias da função. Para produção com tráfego real, usar Vercel KV (Redis) como store do rate limiter.
+O rate limiting em memória não é compartilhado entre múltiplas instâncias do Fly.io. Para produção com tráfego real, usar Redis como store do rate limiter.
 
 ### 20. Verificação de email no cadastro
 

@@ -6,6 +6,4 @@ node_modules
 tests
 *.test.js
 *.md
-.vercel
-.vercelignore
 scripts/load-test.js

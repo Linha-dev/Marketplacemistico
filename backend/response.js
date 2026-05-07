@@ -6,7 +6,7 @@ const API_VERSION = '1.0';
 
 /**
  * Send a standardized success response
- * @param {object} res - Vercel response object
+ * @param {object} res - Express response object
  * @param {any} data - Data to include in response
  * @param {number} statusCode - HTTP status code (default: 200)
  */
@@ -23,7 +23,7 @@ export function sendSuccess(res, data, statusCode = 200) {
 
 /**
  * Send a standardized error response
- * @param {object} res - Vercel response object
+ * @param {object} res - Express response object
  * @param {string} code - Error code (e.g., "VALIDATION_ERROR")
  * @param {string} message - Human-readable error message
  * @param {number} statusCode - HTTP status code (default: 400)

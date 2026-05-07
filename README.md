@@ -56,7 +56,8 @@ O Marketplace Místico é uma plataforma web completa para compra e venda de pro
 
 ### Backend
 - **Node.js** - Runtime JavaScript
-- **Vercel Serverless Functions** - Hospedagem de API
+- **Express** - Framework HTTP
+- **Fly.io** - Hospedagem do backend
 - **PostgreSQL** (Neon Database) - Banco de dados
 - **bcryptjs** - Criptografia de senhas
 - **jsonwebtoken** - Autenticação JWT
@@ -79,8 +80,7 @@ O Marketplace Místico é uma plataforma web completa para compra e venda de pro
 ## 🚀 Como Executar o Projeto
 
 ### Pré-requisitos
-- Node.js (versão 14 ou superior)
-- Conta no Vercel
+- Node.js (versão 22 ou superior)
 - Banco de dados PostgreSQL (recomendado: Neon)
 
 ### Instalação
@@ -118,7 +118,7 @@ npm run db:rollback
 npm run dev
 ```
 
-6. Acesse a aplicação em `http://localhost:3000`
+6. Acesse a aplicação em `http://localhost:8080`
 
 ## 🧪 Testes (TDD)
 
@@ -144,18 +144,15 @@ npx jest --watch
 
 ```
 Marketplacemistico/
-├── api/                      # Backend serverless functions
-│   ├── auth/                 # Autenticação
-│   │   ├── login.js          # Endpoint de login
-│   │   └── register.js       # Endpoint de registro
+├── backend/                  # Logica do servidor
+│   ├── api-handler.js        # Dispatcher central de rotas da API
+│   ├── routes.js             # Registro de rotas
+│   ├── middleware.js          # CORS e middlewares
+│   ├── auth/                 # Autenticacao
 │   ├── products/             # Produtos
-│   │   ├── index.js          # Listar/criar produtos
-│   │   └── [id].js           # Editar/excluir produto
-│   ├── users/                # Usuários
-│   │   ├── profile.js        # Perfil do usuário
-│   │   └── upgrade-to-vendor.js  # Upgrade de cliente para vendedor
-│   ├── db.js                 # Configuração do banco de dados
-│   └── sanitize.js           # Funções de sanitização
+│   ├── orders/               # Pedidos
+│   ├── modules/              # Dominios de negocio (MVC)
+│   └── observability/        # Logs, metricas e alertas
 ├── public/                   # Frontend
 │   ├── index.html            # Página principal
 │   ├── app.js                # Lógica JavaScript
@@ -164,8 +161,11 @@ Marketplacemistico/
 ├── migrations/              # Migrações SQL incrementais (up/down)
 ├── scripts/migrate.js       # Runner de migrações e rollback
 ├── schema.sql               # Snapshot legado do schema (não usar como fluxo principal)
-├── vercel.json               # Configuração Vercel
-└── package.json              # Dependências do projeto
+├── Dockerfile                # Build de container para Fly.io
+├── fly.toml                  # Configuracao de deploy no Fly.io
+├── wrangler.toml             # Configuracao Cloudflare Pages
+├── server.js                 # Entrypoint Express
+└── package.json              # Dependencias do projeto
 ```
 
 ## 🔑 API Endpoints
