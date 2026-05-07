@@ -1207,3 +1207,421 @@ body, html {
     text-align: center;
     padding: var(--space-8);
 }
+
+/* ===================== VENDOR CONVERSION REWORK ===================== */
+
+/* Mode Switcher – Segmented Pill Control */
+.mode-switcher {
+    display: flex;
+    background: var(--color-surface-light);
+    border: 1px solid var(--color-border);
+    border-radius: 50px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.mode-switcher-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    border-radius: 50px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    font-family: var(--font-family);
+}
+
+.mode-switcher-option:hover {
+    color: var(--color-text);
+}
+
+.mode-switcher-option.active {
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+    color: white;
+    box-shadow: 0 2px 8px rgba(74, 20, 140, 0.5);
+}
+
+.mode-switcher-option .option-icon {
+    font-size: 1rem;
+}
+
+.mobile-mode-switcher {
+    width: calc(100% - var(--space-8));
+    margin: var(--space-3) var(--space-4);
+    justify-content: stretch;
+}
+
+.mobile-mode-switcher .mode-switcher-option {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Become Vendor Modal – Reworked */
+.vendor-modal-content {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(123, 87, 194, 0.35);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65), 0 0 35px rgba(74, 20, 140, 0.25);
+    max-width: 520px;
+    width: 90%;
+    position: relative;
+    overflow: hidden;
+    animation: vendorModalIn 0.35s ease;
+}
+
+@keyframes vendorModalIn {
+    from { opacity: 0; transform: translateY(28px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+.vendor-modal-header {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    padding: var(--space-8) var(--space-8) calc(var(--space-6) + 14px);
+    text-align: center;
+    position: relative;
+}
+
+.vendor-modal-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: var(--color-surface);
+    clip-path: ellipse(55% 100% at 50% 100%);
+}
+
+.vendor-modal-icon {
+    font-size: 3.2rem;
+    display: block;
+    margin-bottom: var(--space-3);
+    filter: drop-shadow(0 0 14px rgba(251, 192, 45, 0.7));
+    animation: iconPulse 3s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+    0%, 100% { filter: drop-shadow(0 0 12px rgba(251,192,45,0.6)); }
+    50%       { filter: drop-shadow(0 0 22px rgba(251,192,45,0.9)); }
+}
+
+.vendor-modal-header h3 {
+    color: white;
+    font-size: var(--font-size-xl);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.vendor-modal-header p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: var(--font-size-sm);
+    margin: 0;
+}
+
+.vendor-modal-body {
+    padding: var(--space-6) var(--space-8) var(--space-8);
+}
+
+.vendor-benefits-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+}
+
+.vendor-benefit-item {
+    background: var(--color-surface-light);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    transition: var(--transition-fast);
+}
+
+.vendor-benefit-item:hover {
+    border-color: var(--color-secondary);
+    background: rgba(126, 87, 194, 0.1);
+}
+
+.vendor-benefit-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.vendor-benefit-title {
+    font-weight: 700;
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    margin-bottom: 2px;
+}
+
+.vendor-benefit-desc {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+}
+
+.vendor-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+/* Gold gradient CTA button */
+.btn-vendor-cta {
+    background: linear-gradient(135deg, var(--color-accent) 0%, #e65100 100%);
+    color: var(--color-background);
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: var(--font-size-base);
+    width: 100%;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    font-family: var(--font-family);
+    display: block;
+}
+
+.btn-vendor-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(251, 192, 45, 0.45);
+}
+
+/* Vendor Registration Page – Reworked */
+.vendor-reg-page {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.vendor-reg-header {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 60%, #6a3de8 100%);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: var(--space-8) var(--space-8) var(--space-6);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.vendor-reg-header::before {
+    content: '✨';
+    position: absolute;
+    font-size: 9rem;
+    opacity: 0.07;
+    top: -20px;
+    right: -10px;
+    animation: floatGlyph 7s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes floatGlyph {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%       { transform: translateY(-12px) rotate(12deg); }
+}
+
+.vendor-reg-header h2 {
+    color: white;
+    font-size: var(--font-size-xl);
+    margin: 0 0 var(--space-2) 0;
+}
+
+.vendor-reg-header p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0 0 var(--space-4) 0;
+    font-size: var(--font-size-sm);
+}
+
+/* Step indicator inside reg header */
+.vendor-reg-steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    margin-top: var(--space-2);
+}
+
+.vendor-reg-step {
+    display: flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+.vendor-reg-step.step-active {
+    color: white;
+}
+
+.vendor-reg-step.step-done {
+    color: var(--color-accent);
+}
+
+.vendor-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-right: var(--space-2);
+    flex-shrink: 0;
+    transition: all 0.3s;
+}
+
+.step-active .vendor-step-num {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-background);
+    box-shadow: 0 0 12px rgba(251, 192, 45, 0.5);
+}
+
+.vendor-step-line {
+    width: 36px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.25);
+    margin: 0 var(--space-2);
+}
+
+/* Two-column form layout */
+.vendor-reg-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow: hidden;
+}
+
+.vendor-reg-form-col {
+    padding: var(--space-8);
+    border-right: 1px solid var(--color-border);
+}
+
+.vendor-reg-side {
+    padding: var(--space-6);
+    background: linear-gradient(180deg, rgba(74, 20, 140, 0.15) 0%, rgba(126, 87, 194, 0.05) 100%);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.vendor-side-title {
+    color: var(--color-secondary);
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    margin: 0 0 var(--space-1) 0;
+}
+
+.vendor-side-benefit {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(126, 87, 194, 0.2);
+    transition: var(--transition-fast);
+}
+
+.vendor-side-benefit:hover {
+    border-color: rgba(126, 87, 194, 0.5);
+    background: rgba(126, 87, 194, 0.08);
+}
+
+.vendor-side-benefit-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.vendor-side-benefit-text h5 {
+    color: var(--color-text);
+    margin: 0 0 2px 0;
+    font-size: var(--font-size-sm);
+}
+
+.vendor-side-benefit-text p {
+    color: var(--color-text-secondary);
+    margin: 0;
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+.vendor-side-quote {
+    margin-top: auto;
+    padding: var(--space-4);
+    background: linear-gradient(135deg, rgba(74, 20, 140, 0.3), rgba(126, 87, 194, 0.2));
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(251, 192, 45, 0.2);
+    text-align: center;
+}
+
+.vendor-side-quote p {
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    font-style: italic;
+    margin: 0;
+    line-height: 1.55;
+}
+
+.vendor-side-quote .quote-accent {
+    color: var(--color-accent);
+    font-size: 1.6rem;
+    display: block;
+    margin-bottom: var(--space-2);
+    filter: drop-shadow(0 0 6px rgba(251, 192, 45, 0.4));
+}
+
+/* Sidebar "Tornar-se Vendedor" CTA link */
+.sidebar-nav .become-vendor-link {
+    background: linear-gradient(135deg, rgba(74, 20, 140, 0.3), rgba(126, 87, 194, 0.2));
+    border: 1px solid rgba(251, 192, 45, 0.3);
+    border-radius: var(--radius-md);
+    color: var(--color-accent) !important;
+    font-weight: 700 !important;
+    text-align: center;
+    letter-spacing: 0.3px;
+}
+
+.sidebar-nav .become-vendor-link:hover {
+    background: linear-gradient(135deg, rgba(74, 20, 140, 0.5), rgba(126, 87, 194, 0.4)) !important;
+    border-color: var(--color-accent) !important;
+    color: var(--color-accent) !important;
+    box-shadow: 0 0 14px rgba(251, 192, 45, 0.22);
+}
+
+/* Responsive for vendor reg */
+@media (max-width: 768px) {
+    .vendor-reg-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .vendor-reg-form-col {
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+        padding: var(--space-6);
+    }
+
+    .vendor-reg-side {
+        display: none;
+    }
+
+    .vendor-benefits-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vendor-modal-body {
+        padding: var(--space-5) var(--space-5) var(--space-6);
+    }
+}

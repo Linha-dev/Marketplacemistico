@@ -16,10 +16,14 @@
                 <li><a onclick="navigateHome()">Home</a></li>
                 <li><a onclick="showPage('marketplace')">Explorar Produtos</a></li>
                 <li id="mode-toggle-container" class="hidden">
-                    <button class="mode-toggle-btn" id="mode-toggle-btn" onclick="toggleUserMode()" aria-label="Alternar entre modo Cliente e Vendedor">
-                        <span class="mode-icon" id="mode-icon">🛒</span>
-                        <span class="mode-text" id="mode-text">Cliente</span>
-                    </button>
+                    <div class="mode-switcher" id="mode-switcher" role="group" aria-label="Modo de usuário">
+                        <button class="mode-switcher-option" id="mode-btn-cliente" onclick="switchToMode('cliente')" aria-pressed="true">
+                            <span class="option-icon">🛒</span> Cliente
+                        </button>
+                        <button class="mode-switcher-option" id="mode-btn-vendedor" onclick="switchToMode('vendedor')" aria-pressed="false">
+                            <span class="option-icon">🏪</span> Vendedor
+                        </button>
+                    </div>
                 </li>
                 <li><a onclick="showCart()" id="cart-nav-link" class="hidden" style="position: relative;">🛒 Carrinho <span id="cart-badge" style="position: absolute; top: -8px; right: -8px; background: rgb(255, 68, 68); color: white; border-radius: 50%; font-size: 12px; font-weight: bold; min-width: 20px; height: 20px; display: none; align-items: center; justify-content: center; border: 2px solid var(--color-background);">0</span></a></li>
                 <li><a onclick="showPage('login')" id="nav-login-link" style="display: block;">Login</a></li>
@@ -47,10 +51,14 @@
             <li><a onclick="navigateHomeFromSidebar()">🏠 Home</a></li>
             <li><a onclick="navigateFromSidebar('marketplace')">🔍 Explorar Produtos</a></li>
             <li id="mobile-mode-toggle-container" class="hidden">
-                <button class="mode-toggle-btn mobile-mode-toggle" onclick="toggleUserMode()" aria-label="Alternar entre modo Cliente e Vendedor">
-                    <span class="mode-icon" id="mobile-mode-icon">🛒</span>
-                    <span class="mode-text" id="mobile-mode-text">Cliente</span>
-                </button>
+                <div class="mode-switcher mobile-mode-switcher" id="mobile-mode-switcher" role="group" aria-label="Modo de usuário">
+                    <button class="mode-switcher-option" id="mobile-mode-btn-cliente" onclick="switchToMode('cliente')">
+                        <span class="option-icon">🛒</span> Cliente
+                    </button>
+                    <button class="mode-switcher-option" id="mobile-mode-btn-vendedor" onclick="switchToMode('vendedor')">
+                        <span class="option-icon">🏪</span> Vendedor
+                    </button>
+                </div>
             </li>
             <li><a onclick="navigateFromSidebar('carrinho')" id="mobile-cart-link" class="hidden">🛒 Carrinho (<span id="mobile-cart-count">0</span>)</a></li>
             <li><a onclick="navigateFromSidebar('login')" id="mobile-login-link" style="display: block;">🔑 Login</a></li>
@@ -74,24 +82,48 @@
 
     <!-- Become Vendor Modal -->
     <div class="login-modal" id="becomeVendorModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeBecomeVendorModal()">✕</button>
-            <h3 class="modal-title">🏪 Tornar-se um Vendedor</h3>
-            <p style="color: var(--color-text-secondary); margin-bottom: var(--space-6);">
-                Transforme sua paixão em negócio! Complete seu cadastro como vendedor para começar a vender seus produtos místicos no marketplace.
-            </p>
-            <div style="background: var(--color-surface-light); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-6);">
-                <h4 style="color: var(--color-secondary); margin-bottom: var(--space-3);">✨ Benefícios de ser Vendedor:</h4>
-                <ul style="color: var(--color-text-secondary); padding-left: var(--space-5); margin: 0;">
-                    <li>Alcance milhares de clientes interessados</li>
-                    <li>Gerencie seus produtos facilmente</li>
-                    <li>Acompanhe suas vendas em tempo real</li>
-                    <li>Continue comprando como cliente</li>
-                </ul>
+        <div class="vendor-modal-content">
+            <button class="modal-close" onclick="closeBecomeVendorModal()" style="z-index:2; color: white;">✕</button>
+            <div class="vendor-modal-header">
+                <span class="vendor-modal-icon">🏪</span>
+                <h3>Torne-se um Vendedor</h3>
+                <p>Transforme sua paixão em negócio no Marketplace Místico</p>
             </div>
-            <div class="modal-buttons">
-                <button class="btn" onclick="goToVendorRegistration()">Completar Cadastro</button>
-                <button class="btn btn-outline" onclick="closeBecomeVendorModal()">Agora Não</button>
+            <div class="vendor-modal-body">
+                <div class="vendor-benefits-grid">
+                    <div class="vendor-benefit-item">
+                        <span class="vendor-benefit-icon">🌍</span>
+                        <div>
+                            <div class="vendor-benefit-title">Alcance Global</div>
+                            <div class="vendor-benefit-desc">Milhares de clientes interessados</div>
+                        </div>
+                    </div>
+                    <div class="vendor-benefit-item">
+                        <span class="vendor-benefit-icon">📦</span>
+                        <div>
+                            <div class="vendor-benefit-title">Gestão Fácil</div>
+                            <div class="vendor-benefit-desc">Gerencie produtos sem esforço</div>
+                        </div>
+                    </div>
+                    <div class="vendor-benefit-item">
+                        <span class="vendor-benefit-icon">📊</span>
+                        <div>
+                            <div class="vendor-benefit-title">Vendas em Tempo Real</div>
+                            <div class="vendor-benefit-desc">Acompanhe cada pedido</div>
+                        </div>
+                    </div>
+                    <div class="vendor-benefit-item">
+                        <span class="vendor-benefit-icon">🛒</span>
+                        <div>
+                            <div class="vendor-benefit-title">Modo Duplo</div>
+                            <div class="vendor-benefit-desc">Continue comprando também</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="vendor-modal-actions">
+                    <button class="btn-vendor-cta" onclick="goToVendorRegistration()">✨ Começar Agora — É Grátis</button>
+                    <button class="btn btn-outline" onclick="closeBecomeVendorModal()" style="width: 100%;">Talvez Mais Tarde</button>
+                </div>
             </div>
         </div>
     </div>
@@ -389,46 +421,97 @@
 
             <!-- Vendor Registration Completion -->
             <section id="vendor-registration" class="page">
-                <div class="form-container">
-                    <h2 class="form-title">🏪 Complete seu Cadastro de Vendedor</h2>
-                    <p style="color: var(--color-text-secondary); margin-bottom: var(--space-6); text-align: center;">
-                        Você está a poucos passos de começar a vender no Marketplace Místico!
-                    </p>
-                    <div id="vendor-registration-messages"></div>
-                    <form id="vendorRegistrationForm">
-                        <div class="form-group">
-                            <label for="vendor-nome-loja" class="form-label">Nome da Loja *</label>
-                            <input type="text" id="vendor-nome-loja" class="form-input" placeholder="Ex: Cristais da Lua" required>
+                <div class="vendor-reg-page">
+                    <div class="vendor-reg-header">
+                        <h2>🏪 Cadastro de Vendedor</h2>
+                        <p>Você está a poucos passos de começar a vender no Marketplace Místico!</p>
+                        <div class="vendor-reg-steps">
+                            <div class="vendor-reg-step step-active">
+                                <div class="vendor-step-num">1</div>
+                                <span>Dados da Loja</span>
+                            </div>
+                            <div class="vendor-step-line"></div>
+                            <div class="vendor-reg-step">
+                                <div class="vendor-step-num">2</div>
+                                <span>Verificação</span>
+                            </div>
+                            <div class="vendor-step-line"></div>
+                            <div class="vendor-reg-step">
+                                <div class="vendor-step-num">3</div>
+                                <span>Pronto!</span>
+                            </div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="vendor-categoria" class="form-label">Categoria Principal *</label>
-                            <select id="vendor-categoria" class="form-select" required>
-                                <option value="">Selecione uma categoria</option>
-                                <option value="Cristais e Pedras">🔮 Cristais e Pedras</option>
-                                <option value="Tarô e Oráculos">🃏 Tarô e Oráculos</option>
-                                <option value="Incensos e Velas">🕯️ Incensos e Velas</option>
-                                <option value="Amuletos e Talismãs">🧿 Amuletos e Talismãs</option>
-                                <option value="Livros Esotéricos">📚 Livros Esotéricos</option>
-                                <option value="Serviços Místicos">✨ Serviços Místicos</option>
-                                <option value="Outros">🌟 Outros</option>
-                            </select>
+                    </div>
+                    <div class="vendor-reg-layout">
+                        <div class="vendor-reg-form-col">
+                            <div id="vendor-registration-messages"></div>
+                            <form id="vendorRegistrationForm">
+                                <div class="form-group">
+                                    <label for="vendor-nome-loja" class="form-label">🏷️ Nome da Loja *</label>
+                                    <input type="text" id="vendor-nome-loja" class="form-input" placeholder="Ex: Cristais da Lua" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="vendor-categoria" class="form-label">🗂️ Categoria Principal *</label>
+                                    <select id="vendor-categoria" class="form-select" required>
+                                        <option value="">Selecione uma categoria</option>
+                                        <option value="Cristais e Pedras">🔮 Cristais e Pedras</option>
+                                        <option value="Tarô e Oráculos">🃏 Tarô e Oráculos</option>
+                                        <option value="Incensos e Velas">🕯️ Incensos e Velas</option>
+                                        <option value="Amuletos e Talismãs">🧿 Amuletos e Talismãs</option>
+                                        <option value="Livros Esotéricos">📚 Livros Esotéricos</option>
+                                        <option value="Serviços Místicos">✨ Serviços Místicos</option>
+                                        <option value="Outros">🌟 Outros</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="vendor-descricao" class="form-label">📝 Descrição da Loja</label>
+                                    <textarea id="vendor-descricao" class="form-input" rows="4" placeholder="Conte aos clientes sobre sua loja e produtos..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="vendor-cpf-cnpj" class="form-label">🪪 CPF/CNPJ *</label>
+                                    <input type="text" id="vendor-cpf-cnpj" class="form-input" placeholder="000.000.000-00" oninput="formatCpfCnpj(this)" required>
+                                    <div class="error-message" id="vendor-cpf-cnpj-error">CPF/CNPJ inválido</div>
+                                </div>
+                                <button type="submit" class="btn-vendor-cta" style="margin-top: var(--space-6);">✨ Tornar-se Vendedor</button>
+                                <button type="button" class="btn btn-outline" onclick="cancelVendorRegistration()" style="width: 100%; margin-top: var(--space-3);">Cancelar</button>
+                            </form>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="vendor-descricao" class="form-label">Descrição da Loja</label>
-                            <textarea id="vendor-descricao" class="form-input" rows="4" placeholder="Conte aos clientes sobre sua loja e produtos..."></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="vendor-cpf-cnpj" class="form-label">CPF/CNPJ *</label>
-                            <input type="text" id="vendor-cpf-cnpj" class="form-input" placeholder="000.000.000-00" oninput="formatCpfCnpj(this)" required>
-                            <div class="error-message" id="vendor-cpf-cnpj-error">CPF/CNPJ inválido</div>
-                        </div>
-                        
-                        <button type="submit" class="btn" style="width: 100%;">✨ Tornar-se Vendedor</button>
-                        <button type="button" class="btn btn-outline" onclick="cancelVendorRegistration()" style="width: 100%; margin-top: var(--space-3);">Cancelar</button>
-                    </form>
+                        <aside class="vendor-reg-side">
+                            <p class="vendor-side-title">✨ Por que vender aqui?</p>
+                            <div class="vendor-side-benefit">
+                                <span class="vendor-side-benefit-icon">🌍</span>
+                                <div class="vendor-side-benefit-text">
+                                    <h5>Alcance Ampliado</h5>
+                                    <p>Produto visível para milhares de clientes em busca de itens místicos.</p>
+                                </div>
+                            </div>
+                            <div class="vendor-side-benefit">
+                                <span class="vendor-side-benefit-icon">📊</span>
+                                <div class="vendor-side-benefit-text">
+                                    <h5>Dashboard Completo</h5>
+                                    <p>Gerencie pedidos, estoque e lucros em um só lugar.</p>
+                                </div>
+                            </div>
+                            <div class="vendor-side-benefit">
+                                <span class="vendor-side-benefit-icon">🔒</span>
+                                <div class="vendor-side-benefit-text">
+                                    <h5>100% Seguro</h5>
+                                    <p>Dados protegidos e transações confiáveis.</p>
+                                </div>
+                            </div>
+                            <div class="vendor-side-benefit">
+                                <span class="vendor-side-benefit-icon">🛒</span>
+                                <div class="vendor-side-benefit-text">
+                                    <h5>Modo Duplo</h5>
+                                    <p>Continue comprando como cliente com a mesma conta.</p>
+                                </div>
+                            </div>
+                            <div class="vendor-side-quote">
+                                <span class="quote-accent">✨</span>
+                                <p>"Cada grande loja começa com um primeiro produto. O seu próximo passo é agora."</p>
+                            </div>
+                        </aside>
+                    </div>
                 </div>
             </section>
 
@@ -725,7 +808,7 @@
                             <li><a onclick="showDashboardSection('cliente', 'carrinho')">🛒 Meu Carrinho</a></li>
                             <li><a onclick="showDashboardSection('cliente', 'pedidos')">📋 Meus Pedidos</a></li>
                             <li><a onclick="showDashboardSection('cliente', 'perfil')">👤 Perfil</a></li>
-                            <li class="sidebar-separator"><a onclick="showBecomeVendorModal()">🏪 Tornar-se Vendedor</a></li>
+                            <li class="sidebar-separator"><a class="become-vendor-link" onclick="showBecomeVendorModal()">🏪 Tornar-se Vendedor</a></li>
                             <li><a onclick="logout()">🚪 Sair</a></li>
                         </ul>
                     </aside>
@@ -810,7 +893,7 @@
                             <li><a onclick="showDashboardSection('cliente', 'carrinho')">🛒 Meu Carrinho</a></li>
                             <li><a onclick="showDashboardSection('cliente', 'pedidos')">📋 Meus Pedidos</a></li>
                             <li><a onclick="showDashboardSection('cliente', 'perfil')">👤 Perfil</a></li>
-                            <li class="sidebar-separator"><a onclick="showBecomeVendorModal()">🏪 Tornar-se Vendedor</a></li>
+                            <li class="sidebar-separator"><a class="become-vendor-link" onclick="showBecomeVendorModal()">🏪 Tornar-se Vendedor</a></li>
                             <li><a onclick="logout()">🚪 Sair</a></li>
                         </ul>
                     </aside>
