@@ -1245,6 +1245,8 @@ body, html {
     background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
     color: white;
     box-shadow: 0 2px 8px rgba(74, 20, 140, 0.5);
+    outline: 2px solid rgba(255, 255, 255, 0.25);
+    outline-offset: -2px;
 }
 
 .mode-switcher-option .option-icon {
