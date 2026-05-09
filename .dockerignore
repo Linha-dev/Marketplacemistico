@@ -1,9 +1,16 @@
 node_modules
 .env
 .env.*
+!.env.exemplo
 .git
 .github
 tests
 *.test.js
 *.md
+!README.md
 scripts/load-test.js
+scripts/smoke-test.js
+scripts/new-sprint-branch.ps1
+docs
+infrastructure/nginx/ssl
+infrastructure/backups
