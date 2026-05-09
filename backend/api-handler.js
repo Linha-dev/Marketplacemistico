@@ -1,7 +1,7 @@
-import '../backend/startup-check.js';
-import { withCors } from '../backend/middleware.js';
-import { sendError, sendSuccess } from '../backend/response.js';
-import { routes } from '../backend/routes.js';
+import './startup-check.js';
+import { withCors } from './middleware.js';
+import { sendError, sendSuccess } from './response.js';
+import { routes } from './routes.js';
 
 const handlerCache = new Map();
 
@@ -56,13 +56,10 @@ function addQueryValue(query, key, value) {
   /* eslint-enable security/detect-object-injection */
 }
 
-function buildQuery(url, existingQuery = {}, routeParams = {}, excludedKeys = new Set()) {
+function buildQuery(url, existingQuery = {}, routeParams = {}) {
   const query = { ...existingQuery };
 
   for (const [key, value] of url.searchParams.entries()) {
-    if (excludedKeys.has(key)) {
-      continue;
-    }
     addQueryValue(query, key, value);
   }
 
@@ -87,14 +84,7 @@ async function loadHandler(route) {
 
 async function dispatch(req, res) {
   const requestUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-  const internalRewritePath =
-    requestUrl.searchParams.get('path') || requestUrl.searchParams.get('1');
-  const isInternalRewriteRequest = normalizePath(requestUrl.pathname) === '/api/index.js';
-
-  let pathname = normalizePath(requestUrl.pathname);
-  if (isInternalRewriteRequest && internalRewritePath) {
-    pathname = normalizePath(`/api/${internalRewritePath}`);
-  }
+  const pathname = normalizePath(requestUrl.pathname);
 
   if (pathname === '/api') {
     return sendSuccess(res, {
@@ -110,11 +100,7 @@ async function dispatch(req, res) {
       continue;
     }
 
-    const internalQueryKeys = isInternalRewriteRequest
-      ? new Set(['path', '1'])
-      : new Set();
-
-    req.query = buildQuery(requestUrl, req.query, params, internalQueryKeys);
+    req.query = buildQuery(requestUrl, req.query, params);
 
     if (req.method === 'GET' && route.cacheControl) {
       res.setHeader('Cache-Control', route.cacheControl);

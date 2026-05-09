@@ -27,9 +27,7 @@
 ## Veredito da arquitetura proposta
 **Neon + Fly.io + Cloudflare e uma combinacao valida** para o seu caso. 
 
-Sugestao alternativa (se quiser simplificar operacao):
-- Vercel full-stack (frontend + functions) mantendo Neon;
-- Menos superficie operacional, porem menos controle fino que Fly.io.
+Stack escolhida: Fly.io (backend) + Cloudflare Pages (frontend) + Neon (banco).
 
 ---
 

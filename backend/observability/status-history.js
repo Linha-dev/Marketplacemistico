@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     }));
 
     return sendSuccess(res, { checks });
-  } catch (err) {
+  } catch {
     return sendError(res, 'INTERNAL_ERROR', 'Erro ao buscar histórico', 500);
   }
 }

@@ -5,9 +5,9 @@ const store = new Map();
 /**
  * Simple in-memory rate limiter HOC.
  *
- * NOTE: In-memory state is not shared across Vercel serverless instances.
- * For MVP this provides meaningful protection per-instance.
- * For production with real traffic, replace with a distributed store (e.g. Vercel KV).
+ * NOTE: In-memory state is per-process. With multiple Fly.io instances,
+ * each process tracks its own counters.
+ * For production with real traffic, replace with a distributed store (e.g. Redis).
  *
  * @param {object} opts
  * @param {number} opts.windowMs   - Time window in milliseconds
