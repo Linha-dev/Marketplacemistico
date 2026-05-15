@@ -1,12 +1,8 @@
-node_modules/
 # Local environment secrets (never commit real values)
 .env
 .env.local
 .env.*.local
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 .DS_Store
 .idea/
 .vscode/
