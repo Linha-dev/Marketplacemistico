@@ -329,9 +329,150 @@ Marketplacemistico/
 - `GET /api/users/profile` - Obter perfil do usuário
 - `POST /api/users/upgrade-to-vendor` - Converter cliente em vendedor
 
-## 💾 Modelo de Dados
+## 💾 Banco de Dados — Scripts SQL e Conexão
 
-### Principais Tabelas
+### Qual arquivo de schema usar?
+
+| Cenário | Arquivo | Banco |
+|---|---|---|
+| Hostinger shared hosting | `php/schema_mysql.sql` | MySQL 5.7+ / MariaDB 10.x |
+| VPS com PostgreSQL | `schema.sql` (raiz) | PostgreSQL 14+ |
+
+---
+
+### `php/schema_mysql.sql` — Schema MySQL (Hostinger)
+
+Cria as seguintes tabelas (nesta ordem, respeitando as foreign keys):
+
+| Tabela | Descrição |
+|---|---|
+| `users` | Usuários do sistema (compradores e vendedores). Armazena email, senha (bcrypt), Google ID, CPF/CNPJ e telefone. |
+| `sellers` | Perfil da loja de cada vendedor: nome, categoria, taxa de comissão, modo de repasse (`manual` ou automático via EFI). |
+| `seller_billing_profiles` | Dados bancários do vendedor para repasse: banco, agência, conta, chave Pix. |
+| `seller_shipping_profiles` | Endereço de origem do vendedor para cotação de frete (CEP, cidade, estado). |
+| `addresses` | Endereços de entrega dos compradores. |
+| `products` | Catálogo de produtos: nome, categoria, preço, estoque, imagem, dimensões e peso (para frete). |
+| `shipping_quotes` | Cotações de frete geradas pelo Melhor Envio, válidas por tempo limitado. |
+| `orders` | Pedidos realizados: subtotal, frete, desconto, grand total, status de pagamento e envio. |
+| `order_items` | Itens de cada pedido: snapshot do nome, preço e dimensões no momento da compra. |
+| `payments` | Registros de pagamentos gerados (EFI/Pix). Contém status (`pending`, `approved`, `refused`, etc.) e resposta bruta do gateway. |
+| `refunds` | Solicitações de reembolso associadas a um pagamento. |
+| `payment_splits` | Divisão financeira de cada pagamento: valor bruto, taxa de plataforma, taxa do gateway, valor líquido do vendedor. |
+| `finance_ledger` | Livro-caixa da plataforma: entradas e saídas por pedido/pagamento. |
+| `manual_payouts` | Repasses manuais pendentes para vendedores. |
+| `webhook_events` | Log de todos os webhooks recebidos (EFI, Melhor Envio) com controle de idempotência. |
+| `shipments` | Envios criados no Melhor Envio: ID do envio, código de rastreamento, URL da etiqueta. |
+| `shipment_events` | Histórico de eventos de rastreamento de cada envio. |
+| `rate_limits` | Controle de rate limiting por IP/rota (sem Redis — usa o próprio banco). |
+
+> **Charset e collation:** todas as tabelas usam `utf8mb4` + `utf8mb4_unicode_ci` para suporte a emojis e acentos corretamente.
+
+#### Como importar via phpMyAdmin (Hostinger)
+
+1. Acesse o **hPanel** → **Databases → phpMyAdmin**
+2. No menu lateral, selecione o banco de dados que você criou
+3. Clique na aba **Importar** (Import)
+4. Em *File to import*, clique em **Choose File** e selecione `php/schema_mysql.sql`
+5. Certifique-se de que o charset está como **utf8** ou **utf8mb4**
+6. Clique em **Go** (Executar)
+7. Você deve ver uma mensagem de sucesso e as 17 tabelas listadas no menu lateral
+
+#### Como importar via SSH (planos Business/Cloud)
+
+```bash
+mysql -u SEU_USUARIO -p SEU_BANCO < php/schema_mysql.sql
+```
+
+#### Re-executar / resetar o schema
+
+O script começa com `DROP TABLE IF EXISTS` em ordem reversa de dependência, portanto é **seguro re-executar** — ele apaga e recria todas as tabelas. **Atenção: isso apaga todos os dados.**
+
+---
+
+### Conexão com o banco de dados
+
+#### Localizar as credenciais no Hostinger (hPanel)
+
+1. Acesse **hPanel → Databases → MySQL Databases**
+2. Anote:
+   - **Database name** (ex: `u123456789_mistico`)
+   - **Username** (ex: `u123456789_user`)
+   - **Host** — em shared hosting é **sempre `localhost`**
+   - **Port** — padrão MySQL: **`3306`**
+   - A senha você definiu ao criar o usuário (pode ser redefinida no painel)
+
+> ⚠️ No Hostinger shared hosting o host é sempre `localhost`. Nunca use o IP externo do servidor para conexão MySQL local.
+
+#### Configuração no `.env`
+
+```env
+DB_DRIVER=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=u123456789_mistico
+DB_USER=u123456789_user
+DB_PASS=sua_senha_aqui
+```
+
+O arquivo `php/src/Database.php` monta o DSN PDO automaticamente:
+
+```
+mysql:host=localhost;port=3306;dbname=u123456789_mistico;charset=utf8mb4
+```
+
+#### Conexão com PostgreSQL (VPS Hostinger)
+
+Se você tiver um VPS com PostgreSQL instalado:
+
+```env
+DB_DRIVER=pgsql
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=nome_do_banco
+DB_USER=postgres
+DB_PASS=sua_senha
+```
+
+Use o schema da raiz do projeto (`schema.sql`) em vez do `schema_mysql.sql`.
+
+#### Verificar a conexão
+
+Depois de configurar o `.env`, acesse:
+
+```
+https://seu-dominio.com/api/health
+```
+
+Resposta esperada:
+```json
+{
+  "success": true,
+  "data": {
+    "status": "ok",
+    "database": "connected",
+    "php": "8.x.x",
+    "timestamp": "2025-..."
+  }
+}
+```
+
+Se `"database"` aparecer como `"error"`, verifique as credenciais no `.env` e se o banco foi criado corretamente.
+
+#### Troubleshooting de conexão
+
+| Erro | Causa provável | Solução |
+|---|---|---|
+| `Access denied for user` | Usuário ou senha incorretos | Redefina a senha no hPanel → MySQL Databases |
+| `Unknown database` | Nome do banco errado | Verifique `DB_NAME` — no Hostinger costuma ter prefixo (`u123456_`) |
+| `Can't connect to MySQL server` | Host incorreto | Use `localhost` (não o IP do servidor) |
+| `Table ... doesn't exist` | Schema não foi importado | Reimporte `php/schema_mysql.sql` via phpMyAdmin |
+| `could not find driver` | Extensão PDO não habilitada | Contate o suporte Hostinger ou ative via `php.ini` |
+
+---
+
+### Modelo de Dados
+
+#### Principais Tabelas
 - **users** - Informações dos usuários (clientes e vendedores)
 - **sellers** - Dados específicos de vendedores (loja, categoria)
 - **products** - Catálogo de produtos
@@ -421,8 +562,9 @@ Este projeto está sob a licença especificada no arquivo LICENSE.
 
 ## 👥 Autores
 
-- [@victordg0223](https://github.com/victordg0223)
-- [@ojuras](https://github.com/oJuras)
+<a href="https://github.com/victordg0223">@victordg0223</a>
+&nbsp;
+<a href="https://github.com/oJuras">@ojuras</a>
 
 ## 📞 Suporte
 
