@@ -1,5 +1,0 @@
-import { withCors } from '../../middleware.js';
-import { requireAuth } from '../../auth-middleware.js';
-import { orderStatusController } from '../../modules/orders/core/controller.js';
-
-export default withCors(requireAuth(orderStatusController));
