@@ -1,0 +1,16 @@
+Options -Indexes
+DirectoryIndex index.php index.html
+
+# Serve static assets directly, route everything else through index.php
+RewriteEngine On
+
+# API routes → api/index.php
+RewriteCond %{REQUEST_URI} ^/api(/|$)
+RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+
+# Static frontend assets (css, js, images, etc.)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# SPA fallback: serve index.html for any non-file request
+RewriteRule ^ index.html [L]
