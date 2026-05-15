@@ -21,7 +21,8 @@ spl_autoload_register(function (string $class): void {
         'RateLimit'  => __DIR__ . '/../src/RateLimit.php',
         'Sanitize'   => __DIR__ . '/../src/Sanitize.php',
         'RBAC'       => __DIR__ . '/../src/RBAC.php',
-        'Router'     => __DIR__ . '/../src/Router.php',
+        'Router'            => __DIR__ . '/../src/Router.php',
+        'BusinessException' => __DIR__ . '/../src/BusinessException.php',
 
         // Handlers - Auth
         'HealthHandler'              => __DIR__ . '/../src/handlers/HealthHandler.php',
@@ -192,6 +193,10 @@ $router->add('/api/users/addresses',                       'AddressesHandler');
 // -----------------------------------------------------------------------
 try {
     $router->dispatch($path, $context);
+} catch (BusinessException $e) {
+    $code       = $e->getErrorCode();
+    $statusCode = Response::statusForCode($code);
+    Response::error($code, $e->getMessage(), $statusCode);
 } catch (Throwable $e) {
     error_log("[marketplace] Unhandled error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
     Response::serverError('Erro interno do servidor');

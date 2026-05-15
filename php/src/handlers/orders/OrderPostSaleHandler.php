@@ -33,9 +33,7 @@ class OrderPostSaleHandler
             }
 
             if ($order['comprador_id'] != $user['id']) {
-                $err = new RuntimeException('Apenas o comprador pode solicitar cancelamento/devolução');
-                $err->code = 'FORBIDDEN';
-                throw $err;
+                throw new BusinessException('FORBIDDEN', 'Apenas o comprador pode solicitar cancelamento/devolução');
             }
 
             $prevStatus         = $order['status'];
@@ -45,9 +43,7 @@ class OrderPostSaleHandler
 
             if ($action === 'cancel') {
                 if (!in_array($order['status'], self::CANCEL_ALLOWED, true)) {
-                    $err = new RuntimeException('Cancelamento permitido apenas antes do envio');
-                    $err->code = 'CANCEL_NOT_ALLOWED';
-                    throw $err;
+                    throw new BusinessException('CANCEL_NOT_ALLOWED', 'Cancelamento permitido apenas antes do envio');
                 }
                 $nextStatus         = 'cancelado';
                 $nextShippingStatus = 'cancelled';
@@ -55,9 +51,7 @@ class OrderPostSaleHandler
 
             if ($action === 'return_request') {
                 if (!in_array($order['status'], self::RETURN_ALLOWED, true)) {
-                    $err = new RuntimeException('Devolução permitida apenas para pedido entregue');
-                    $err->code = 'RETURN_NOT_ALLOWED';
-                    throw $err;
+                    throw new BusinessException('RETURN_NOT_ALLOWED', 'Devolução permitida apenas para pedido entregue');
                 }
                 $nextStatus         = 'devolvido';
                 $nextShippingStatus = 'returned';

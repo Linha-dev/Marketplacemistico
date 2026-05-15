@@ -91,18 +91,14 @@ class OrdersIndexHandler
             // Verifica que todos são do mesmo vendedor
             $sellerIds = array_unique(array_column($lockedProducts, 'seller_id'));
             if (count($sellerIds) !== 1) {
-                $err = new RuntimeException('No MVP, o carrinho aceita produtos de apenas um vendedor por vez');
-                $err->code = 'MULTI_SELLER_NOT_ALLOWED';
-                throw $err;
+                throw new BusinessException('MULTI_SELLER_NOT_ALLOWED', 'No MVP, o carrinho aceita produtos de apenas um vendedor por vez');
             }
 
             $sellerId     = $lockedProducts[0]['seller_id'];
             $sellerUserId = $lockedProducts[0]['seller_user_id'];
 
             if ($user['id'] == $sellerUserId) {
-                $err = new RuntimeException('Vendedor não pode comprar seus próprios produtos');
-                $err->code = 'FORBIDDEN';
-                throw $err;
+                throw new BusinessException('FORBIDDEN', 'Vendedor não pode comprar seus próprios produtos');
             }
 
             $productById = [];
@@ -123,23 +119,18 @@ class OrdersIndexHandler
             foreach ($sanitizedItems as $item) {
                 $p = $productById[$item['productId']];
                 if (!$p['publicado']) {
-                    $err = new RuntimeException("Produto {$p['id']} não está disponível");
-                    $err->code = 'PRODUCT_UNAVAILABLE';
-                    throw $err;
+                    throw new BusinessException('PRODUCT_UNAVAILABLE', "Produto {$p['id']} não está disponível");
                 }
                 $orderItems[] = [
                     'product'    => $p,
                     'quantidade' => $item['quantidade'],
                     'preco'      => (float)$p['preco'],
                 ];
-                $subtotal += (float)$p['preco'] * $item['quantidade'];
-            }
+                $subtotal += (float)$p['preco'] * $item['quantidade'];            }
 
             foreach ($requestedQty as $pid => $qty) {
                 if ((int)$productById[$pid]['estoque'] < $qty) {
-                    $err = new RuntimeException("Estoque insuficiente para produto {$pid}");
-                    $err->code = 'INSUFFICIENT_STOCK';
-                    throw $err;
+                    throw new BusinessException('INSUFFICIENT_STOCK', "Estoque insuficiente para produto {$pid}");
                 }
             }
 

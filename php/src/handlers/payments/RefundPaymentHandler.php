@@ -53,9 +53,7 @@ class RefundPaymentHandler
             $currentStatus = strtolower($payment['status']);
 
             if (!in_array($currentStatus, ['approved', 'partially_refunded'], true)) {
-                $err = new RuntimeException('Pagamento sem saldo para refund');
-                $err->code = 'INVALID_PAYMENT_STATUS';
-                throw $err;
+                throw new BusinessException('INVALID_PAYMENT_STATUS', 'Pagamento sem saldo para refund');
             }
 
             // Calcula saldo reembolsável
@@ -67,16 +65,12 @@ class RefundPaymentHandler
             $refundable    = round($paymentAmount - $refundedTotal, 2);
 
             if ($refundable <= 0) {
-                $err = new RuntimeException('Não existe saldo reembolsável');
-                $err->code = 'NO_REFUNDABLE_BALANCE';
-                throw $err;
+                throw new BusinessException('NO_REFUNDABLE_BALANCE', 'Não existe saldo reembolsável');
             }
 
             $amountToRefund = round($requestedAmount ?? $refundable, 2);
             if ($amountToRefund <= 0 || $amountToRefund - $refundable > 0.009) {
-                $err = new RuntimeException('Valor solicitado excede o saldo reembolsável');
-                $err->code = 'REFUND_AMOUNT_EXCEEDS_BALANCE';
-                throw $err;
+                throw new BusinessException('REFUND_AMOUNT_EXCEEDS_BALANCE', 'Valor solicitado excede o saldo reembolsável');
             }
 
             if ($payment['provider'] !== 'efi') {
